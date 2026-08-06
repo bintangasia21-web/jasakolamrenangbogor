@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin — Jasa Kolam Renang Bogor</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"><path d="M2 17c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0"/><path d="M12 13V4l3 2"/></svg></span>
+      Panel Admin
+    </div>
+    <nav class="admin-nav">
+      <button type="button" data-tab="bisnis" class="active">Info Bisnis</button>
+      <button type="button" data-tab="area">Area Layanan</button>
+      <button type="button" data-tab="faq">FAQ</button>
+      <button type="button" data-tab="foto">Foto / Portofolio</button>
+      <div class="divider"></div>
+      <button type="button" data-tab="preview">Pratinjau Situs</button>
+      <button type="button" data-tab="data">Ekspor / Impor Data</button>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-notice">
+      <strong>Catatan:</strong> Halaman ini adalah editor konten lokal untuk situs statis dan tidak memiliki sistem login/database. Perubahan yang disimpan di sini hanya tersimpan di browser Anda (localStorage) sebagai pratinjau. Untuk menerapkan perubahan agar tampil bagi semua pengunjung, buka tab <em>"Ekspor / Impor Data"</em>, unduh <code>data.js</code>, lalu upload file tersebut ke hosting untuk menimpa <code>assets/js/data.js</code>. Disarankan halaman ini tidak diberi akses publik tanpa proteksi tambahan dari sisi hosting (mis. HTTP Basic Auth).
+    </div>
+
+    <!-- Info Bisnis -->
+    <section id="panel-bisnis" class="admin-panel active">
+      <h2>Info Bisnis</h2>
+      <p class="panel-desc">Kelola nama usaha, kontak, alamat, dan jam operasional yang tampil di seluruh halaman situs.</p>
+      <form id="business-form">
+        <div class="admin-card">
+          <div class="admin-card-head"><h3>Identitas</h3></div>
+          <div class="form-grid">
+            <div class="field"><label>Nama Bisnis</label><input type="text" name="name"></div>
+            <div class="field"><label>Domain Situs</label><input type="text" name="domain"></div>
+          </div>
+          <div class="field full"><label>Tagline</label><input type="text" name="tagline"></div>
+          <div class="field full"><label>Deskripsi Singkat</label><textarea name="description"></textarea></div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-head"><h3>Kontak</h3></div>
+          <div class="form-grid">
+            <div class="field"><label>Nomor Telepon (tampil)</label><input type="text" name="phoneDisplay" placeholder="0812-3456-7890"></div>
+            <div class="field"><label>Nomor Telepon (format tel:)</label><input type="text" name="phoneHref" placeholder="+6281234567890"></div>
+            <div class="field"><label>Nomor WhatsApp (angka saja)</label><input type="text" name="whatsapp" placeholder="6281234567890"></div>
+            <div class="field"><label>Email</label><input type="email" name="email"></div>
+          </div>
+          <div class="field full"><label>Pesan Default WhatsApp</label><textarea name="whatsappMessage"></textarea></div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-head"><h3>Alamat & Jam Operasional</h3></div>
+          <div class="field full"><label>Alamat Lengkap</label><input type="text" name="addressLine"></div>
+          <div class="form-grid">
+            <div class="field"><label>Kota</label><input type="text" name="city"></div>
+            <div class="field"><label>Provinsi</label><input type="text" name="region"></div>
+            <div class="field"><label>Kode Pos</label><input type="text" name="postalCode"></div>
+            <div class="field"><label>Rentang Harga</label><input type="text" name="priceRange" placeholder="$$"></div>
+            <div class="field"><label>Jam Operasional Senin–Jumat</label><input type="text" name="hoursWeekday" placeholder="08.00 – 17.00"></div>
+            <div class="field"><label>Jam Operasional Sabtu–Minggu</label><input type="text" name="hoursWeekend" placeholder="08.00 – 15.00"></div>
+            <div class="field"><label>Tahun Pengalaman</label><input type="number" name="yearsExperience"></div>
+            <div class="field"><label>Jumlah Proyek Selesai</label><input type="number" name="projectsDone"></div>
+          </div>
+          <div class="field full">
+            <label>Alamat untuk Peta (nama lokasi/alamat)</label>
+            <input type="text" name="mapsQuery" placeholder="Bogor, Jawa Barat">
+            <small>Tekan tombol di bawah untuk membuat tautan peta otomatis dari alamat ini.</small>
+          </div>
+          <button type="button" id="btn-build-map" class="btn btn-secondary btn-sm">Buat Peta dari Alamat</button>
+        </div>
+
+        <div class="toolbar">
+          <button type="submit" class="btn btn-primary">Simpan Info Bisnis</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Area Layanan -->
+    <section id="panel-area" class="admin-panel">
+      <h2>Area Layanan</h2>
+      <p class="panel-desc">Kelola daftar area/chip yang tampil pada bagian "Area Layanan" di beranda, lengkap dengan titik lokasi di peta. Area dengan halaman khusus (Sentul, Puncak, Cibinong, Bogor Kota) sebaiknya tetap mengarah ke file HTML masing-masing.</p>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><h3>Peta Pemilihan Lokasi</h3></div>
+        <p id="picker-status" style="color:var(--gray-600);font-size:.88rem;margin-bottom:10px">Klik tombol "Pilih Lokasi di Peta" pada salah satu area di bawah, lalu klik titik lokasinya di peta ini. Koordinat akan otomatis terisi — tidak perlu mengetik manual.</p>
+        <div class="picker-map-wrap"><div id="admin-picker-map"></div></div>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" id="btn-add-area" class="btn btn-secondary">+ Tambah Area</button>
+        <button type="button" id="btn-save-areas" class="btn btn-primary">Simpan Area Layanan</button>
+      </div>
+      <div id="area-list"></div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="panel-faq" class="admin-panel">
+      <h2>FAQ (Beranda)</h2>
+      <p class="panel-desc">Kelola daftar pertanyaan & jawaban yang tampil di beranda. Konten ini juga digunakan untuk menghasilkan data terstruktur FAQPage (JSON-LD) secara otomatis.</p>
+      <div class="toolbar">
+        <button type="button" id="btn-add-faq" class="btn btn-secondary">+ Tambah FAQ</button>
+        <button type="button" id="btn-save-faq" class="btn btn-primary">Simpan FAQ</button>
+      </div>
+      <div id="faq-list-admin"></div>
+    </section>
+
+    <!-- Foto / Portofolio -->
+    <section id="panel-foto" class="admin-panel">
+      <h2>Foto / Portofolio</h2>
+      <p class="panel-desc">Kelola galeri portofolio di beranda. Isi URL gambar (disarankan untuk produksi) atau unggah gambar dari perangkat untuk pratinjau lokal.</p>
+      <div class="toolbar">
+        <button type="button" id="btn-add-photo" class="btn btn-secondary">+ Tambah Foto</button>
+        <button type="button" id="btn-save-portfolio" class="btn btn-primary">Simpan Portofolio</button>
+      </div>
+      <div id="portfolio-list-admin"></div>
+    </section>
+
+    <!-- Pratinjau -->
+    <section id="panel-preview" class="admin-panel">
+      <h2>Pratinjau Situs</h2>
+      <p class="panel-desc">Pratinjau ini menampilkan index.html dengan perubahan yang telah Anda simpan pada browser ini.</p>
+      <div class="preview-frame-wrap">
+        <iframe id="preview-frame" src="index.html" title="Pratinjau Situs"></iframe>
+      </div>
+    </section>
+
+    <!-- Ekspor / Impor -->
+    <section id="panel-data" class="admin-panel">
+      <h2>Ekspor / Impor Data</h2>
+      <p class="panel-desc">Situs ini statis dan tidak memiliki server database — gunakan alat berikut untuk menerapkan perubahan secara permanen atau memindahkannya ke lingkungan lain.</p>
+      <div class="admin-card">
+        <div class="admin-card-head"><h3>Terapkan ke Situs Langsung (Live)</h3></div>
+        <p style="color:var(--gray-600);font-size:.9rem">Unduh <code>data.js</code> berisi seluruh data saat ini, lalu upload melalui panel hosting/FTP Anda untuk menimpa file <code>assets/js/data.js</code>.</p>
+        <button type="button" id="btn-download-datajs" class="btn btn-primary">Unduh data.js</button>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-head"><h3>JSON Mentah</h3></div>
+        <div class="toolbar">
+          <button type="button" id="btn-export-json" class="btn btn-ghost btn-sm">Tampilkan JSON Saat Ini</button>
+          <button type="button" id="btn-import-json" class="btn btn-ghost btn-sm">Impor dari JSON di Bawah</button>
+        </div>
+        <textarea id="json-io" class="code" placeholder="Tempel JSON di sini untuk diimpor, atau klik 'Tampilkan JSON Saat Ini'."></textarea>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-head"><h3>Reset</h3></div>
+        <p style="color:var(--gray-600);font-size:.9rem">Mengembalikan seluruh data pada pratinjau browser ini ke nilai bawaan situs.</p>
+        <button type="button" id="btn-reset" class="btn btn-danger btn-sm">Reset ke Default</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/admin.js"></script>
+</body>
+</html>
