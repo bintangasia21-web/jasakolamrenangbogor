@@ -1,0 +1,10 @@
+# Proteksi Basic Auth khusus untuk admin.html
+# File .htpasswd TIDAK disimpan di repo Git (repo ini publik) — dibuat
+# manual langsung di server lewat File Manager Hostinger, sejajar dengan
+# file ini (di folder public_html).
+<Files "admin.html">
+  AuthType Basic
+  AuthName "Admin - Jasa Kolam Renang Bogor"
+  AuthUserFile /home/USERNAME_HOSTING/domains/jasakolamrenangbogor.com/public_html/.htpasswd
+  Require valid-user
+</Files>
