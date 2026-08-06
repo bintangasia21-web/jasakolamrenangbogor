@@ -36,8 +36,21 @@ if (json_last_error() !== JSON_ERROR_NONE || !is_array($payload)) {
 }
 
 $dataFile = __DIR__ . '/assets/js/data.json';
-if (!file_exists($dataFile) || !is_readable($dataFile)) {
-    respond(false, 'data.json belum tersedia di server.');
+$defaultFile = __DIR__ . '/assets/js/data.default.json';
+
+// data.json sengaja tidak dilacak Git (lihat .gitignore) supaya bisa ditulis
+// bebas oleh endpoint ini. Kalau proses deploy pernah menghapusnya, pulihkan
+// otomatis dari data.default.json (file baca-saja yang selalu ikut ter-deploy).
+if (!file_exists($dataFile)) {
+    if (!file_exists($defaultFile)) {
+        respond(false, 'data.json dan data.default.json sama-sama tidak ada di server. Hubungi pengembang.');
+    }
+    if (!copy($defaultFile, $dataFile)) {
+        respond(false, 'Gagal memulihkan data.json dari template default.');
+    }
+}
+if (!is_readable($dataFile)) {
+    respond(false, 'data.json tidak bisa dibaca. Cek izin file di server.');
 }
 if (!is_writable($dataFile)) {
     respond(false, 'data.json tidak bisa ditulis. Cek izin file di server.');
