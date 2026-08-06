@@ -32,7 +32,7 @@
 
   <main class="admin-main">
     <div class="admin-notice">
-      <strong>Catatan:</strong> Halaman ini adalah editor konten lokal untuk situs statis dan tidak memiliki sistem login/database. Perubahan yang disimpan di sini hanya tersimpan di browser Anda (localStorage) sebagai pratinjau. Untuk menerapkan perubahan agar tampil bagi semua pengunjung, buka tab <em>"Ekspor / Impor Data"</em>, unduh <code>data.js</code>, lalu upload file tersebut ke hosting untuk menimpa <code>assets/js/data.js</code>. Halaman ini sudah dilindungi HTTP Basic Auth (login browser) — kelola password login lewat tab <em>"Keamanan"</em>.
+      <strong>Catatan:</strong> Tab <em>"Foto / Portofolio"</em> sudah live — perubahan langsung tersimpan di server dan tampil bagi semua pengunjung. Tab lain (Info Bisnis, Area Layanan, FAQ) masih berupa editor pratinjau lokal (localStorage browser ini) — untuk menerapkannya ke semua pengunjung, buka tab <em>"Ekspor / Impor Data"</em>, unduh <code>data.js</code>, lalu upload file tersebut ke hosting untuk menimpa <code>assets/js/data.js</code>. Halaman ini sudah dilindungi HTTP Basic Auth (login browser) — kelola password login lewat tab <em>"Keamanan"</em>.
     </div>
 
     <!-- Info Bisnis -->
@@ -120,7 +120,7 @@
     <!-- Foto / Portofolio -->
     <section id="panel-foto" class="admin-panel">
       <h2>Foto / Portofolio</h2>
-      <p class="panel-desc">Kelola galeri portofolio di beranda. Isi URL gambar (disarankan untuk produksi) atau unggah gambar dari perangkat untuk pratinjau lokal.</p>
+      <p class="panel-desc">Kelola galeri portofolio di beranda. Unggah foto langsung dari perangkat — otomatis tersimpan di server dan tampil bagi semua pengunjung tanpa perlu unduh/upload file apa pun. Kolom URL gambar tetap tersedia sebagai alternatif jika ingin memakai gambar yang sudah dihosting di tempat lain.</p>
       <div class="toolbar">
         <button type="button" id="btn-add-photo" class="btn btn-secondary">+ Tambah Foto</button>
         <button type="button" id="btn-save-portfolio" class="btn btn-primary">Simpan Portofolio</button>

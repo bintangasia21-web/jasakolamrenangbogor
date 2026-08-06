@@ -2,8 +2,12 @@
  * admin.js — Logika panel admin lokal (client-side) untuk situs statis
  * Jasa Kolam Renang Bogor.
  *
- * Panel ini TIDAK memiliki backend/database. Perubahan disimpan sementara
- * di localStorage browser (kunci "jkrb_data") sehingga:
+ * Bagian "Foto / Portofolio" sudah live: upload-photo.php + save-data.php
+ * menyimpan langsung ke assets/js/data.json di server, tampil bagi semua
+ * pengunjung tanpa langkah manual.
+ *
+ * Bagian lain (Info Bisnis, Area, FAQ) masih memakai localStorage browser
+ * (kunci "jkrb_data") sebagai pratinjau lokal:
  *  - Pratinjau langsung terlihat di panel admin & di index.html/area
  *    HANYA pada browser yang sama.
  *  - Untuk membuat perubahan tampil bagi SEMUA pengunjung situs, admin
@@ -17,8 +21,18 @@
 
   function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
-  function loadState() {
-    var base = clone(window.SITE_DATA);
+  function fetchLiveBase() {
+    return fetch("assets/js/data.json", { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("data.json tidak tersedia");
+        return r.json();
+      })
+      .catch(function () {
+        return clone(window.SITE_DATA);
+      });
+  }
+
+  function loadState(base) {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -281,7 +295,7 @@
         "</div>" +
         field("Deskripsi", "textarea", "desc", item.desc) +
         field("URL Gambar (opsional)", "text", "image", item.image || "") +
-        '<div class="field"><label>Atau unggah dari perangkat</label><input type="file" accept="image/*" data-upload="' + idx + '"><small>Gambar diunggah disimpan sementara di browser ini (base64) hanya untuk pratinjau. Untuk produksi, gunakan hosting gambar dan isi kolom URL di atas.</small></div>';
+        '<div class="field"><label>Atau unggah foto (langsung live)</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-upload="' + idx + '"><small data-upload-status>Foto yang diunggah langsung tersimpan di server dan tampil bagi semua pengunjung.</small></div>';
 
       card.querySelectorAll("[data-field]").forEach(function (inp) {
         inp.addEventListener("input", function () {
@@ -292,21 +306,54 @@
       card.querySelector("[data-upload]").addEventListener("change", function (e) {
         var file = e.target.files[0];
         if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function () {
-          state.portfolio[idx].image = reader.result;
-          card.querySelector("[data-field='image']").value = reader.result;
-          updateThumb(card, state.portfolio[idx]);
-          toast("Gambar dimuat untuk pratinjau lokal.");
-        };
-        reader.readAsDataURL(file);
+        var status = card.querySelector("[data-upload-status]");
+        var fd = new FormData();
+        fd.append("photo", file);
+        status.textContent = "Mengunggah...";
+        fetch("upload-photo.php", { method: "POST", body: fd })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.success) {
+              status.textContent = data.message || "Upload gagal.";
+              toast(data.message || "Upload gagal.");
+              return;
+            }
+            state.portfolio[idx].image = data.url;
+            card.querySelector("[data-field='image']").value = data.url;
+            updateThumb(card, state.portfolio[idx]);
+            status.textContent = "Foto tersimpan. Mempublikasikan ke situs live...";
+            return syncPortfolioLive().then(function () {
+              status.textContent = "Foto tersimpan & sudah live di situs.";
+            });
+          })
+          .catch(function () {
+            status.textContent = "Gagal menghubungi server saat upload.";
+            toast("Gagal menghubungi server saat upload.");
+          });
       });
       card.querySelector("[data-remove]").addEventListener("click", function () {
         state.portfolio.splice(idx, 1);
         renderPortfolio();
+        syncPortfolioLive();
       });
       mount.appendChild(card);
     });
+  }
+
+  function syncPortfolioLive() {
+    var fd = new FormData();
+    fd.append("section", "portfolio");
+    fd.append("payload", JSON.stringify(state.portfolio));
+    return fetch("save-data.php", { method: "POST", body: fd })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        toast(data.message || (data.success ? "Portofolio live diperbarui." : "Gagal memperbarui portofolio live."));
+        refreshPreview();
+        return data;
+      })
+      .catch(function () {
+        toast("Gagal menghubungi server untuk publikasi live.");
+      });
   }
 
   function updateThumb(card, item) {
@@ -321,7 +368,10 @@
       state.portfolio.push({ title: "Proyek Baru", area: "Bogor Kota", desc: "Deskripsi singkat proyek.", color1: "#1478c8", color2: "#00b8d9", image: null });
       renderPortfolio();
     });
-    document.getElementById("btn-save-portfolio").addEventListener("click", persist);
+    document.getElementById("btn-save-portfolio").addEventListener("click", function () {
+      persist();
+      syncPortfolioLive();
+    });
   }
 
   /* ---------- Export / Import ---------- */
@@ -420,7 +470,6 @@
   }
 
   function init() {
-    state = loadState();
     initTabs();
     initPickerMap();
     bindBusinessForm();
@@ -429,7 +478,10 @@
     bindPortfolioButtons();
     bindExportImport();
     bindPasswordForm();
-    renderAll();
+    fetchLiveBase().then(function (base) {
+      state = loadState(base);
+      renderAll();
+    });
   }
 
   document.addEventListener("DOMContentLoaded", init);

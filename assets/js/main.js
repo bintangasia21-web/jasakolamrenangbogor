@@ -1,6 +1,12 @@
 /*
- * main.js — Merender bagian dinamis halaman publik (index.html) dari data.js,
- * dengan localStorage ("jkrb_data") sebagai lapisan pratinjau perubahan admin.
+ * main.js — Merender bagian dinamis halaman publik (index.html).
+ * Sumber data utama: assets/js/data.json (live, diperbarui langsung oleh
+ * panel admin lewat save-data.php — mis. saat upload foto portofolio).
+ * Jika data.json gagal diambil (mis. dibuka lewat file://), dipakai
+ * window.SITE_DATA dari data.js sebagai cadangan.
+ * localStorage ("jkrb_data") tetap dipakai sebagai lapisan pratinjau
+ * lokal khusus browser admin untuk bagian yang belum live (info bisnis,
+ * area, FAQ).
  * Juga menghasilkan JSON-LD LocalBusiness & FAQPage secara otomatis agar
  * selalu sinkron dengan konten FAQ dan info bisnis yang tampil.
  */
@@ -9,8 +15,18 @@
 
   var STORAGE_KEY = "jkrb_data";
 
-  function getData() {
-    var base = window.SITE_DATA || {};
+  function fetchLiveBase() {
+    return fetch("assets/js/data.json", { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("data.json tidak tersedia");
+        return r.json();
+      })
+      .catch(function () {
+        return window.SITE_DATA || {};
+      });
+  }
+
+  function getData(base) {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -284,16 +300,18 @@
   }
 
   function init() {
-    var data = getData();
-    if (!data.business) return;
-    renderBusinessInfo(data.business);
-    renderAreas(data.areas || []);
-    renderAreaMap(data.areas || []);
-    renderPortfolio(data.portfolio || []);
-    renderFaq(data.faq || []);
-    if (!window.SITE_SKIP_AUTO_LD) renderLocalBusinessLd(data.business);
-    bindNav();
-    bindWaFloat(data.business);
+    fetchLiveBase().then(function (base) {
+      var data = getData(base);
+      if (!data.business) return;
+      renderBusinessInfo(data.business);
+      renderAreas(data.areas || []);
+      renderAreaMap(data.areas || []);
+      renderPortfolio(data.portfolio || []);
+      renderFaq(data.faq || []);
+      if (!window.SITE_SKIP_AUTO_LD) renderLocalBusinessLd(data.business);
+      bindNav();
+      bindWaFloat(data.business);
+    });
   }
 
   if (document.readyState === "loading") {
