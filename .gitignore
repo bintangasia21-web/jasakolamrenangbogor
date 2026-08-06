@@ -7,3 +7,9 @@ Thumbs.db
 # di admin.html). Kalau tetap dilacak Git, deploy berikutnya akan
 # menimpa password yang baru diganti admin kembali ke versi lama di repo.
 .htpasswd
+
+# assets/js/data.json sengaja tidak dilacak Git lagi mulai sekarang:
+# file ini diperbarui langsung di server oleh save-data.php (upload
+# foto portofolio dsb). Kalau tetap dilacak Git, deploy berikutnya akan
+# menimpa foto/perubahan yang sudah live kembali ke versi lama di repo.
+assets/js/data.json
