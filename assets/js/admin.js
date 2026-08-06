@@ -378,6 +378,47 @@
     renderPortfolio();
   }
 
+  /* ---------- Keamanan (ganti password) ---------- */
+  function bindPasswordForm() {
+    var form = document.getElementById("password-form");
+    if (!form) return;
+    var msg = document.getElementById("password-msg");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var current = form.current_password.value;
+      var next = form.new_password.value;
+      var confirmVal = form.new_password_confirm.value;
+
+      if (next !== confirmVal) {
+        msg.style.color = "#c0392b";
+        msg.textContent = "Password baru dan konfirmasi tidak sama.";
+        return;
+      }
+
+      var submitBtn = form.querySelector("button[type=submit]");
+      submitBtn.disabled = true;
+      msg.style.color = "var(--gray-600)";
+      msg.textContent = "Menyimpan...";
+
+      fetch("change-password.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "current_password=" + encodeURIComponent(current) + "&new_password=" + encodeURIComponent(next)
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          msg.style.color = data.success ? "#1eb857" : "#c0392b";
+          msg.textContent = data.message;
+          if (data.success) form.reset();
+        })
+        .catch(function () {
+          msg.style.color = "#c0392b";
+          msg.textContent = "Gagal menghubungi server. Coba lagi.";
+        })
+        .finally(function () { submitBtn.disabled = false; });
+    });
+  }
+
   function init() {
     state = loadState();
     initTabs();
@@ -387,6 +428,7 @@
     bindFaqButtons();
     bindPortfolioButtons();
     bindExportImport();
+    bindPasswordForm();
     renderAll();
   }
 

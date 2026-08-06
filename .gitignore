@@ -1,3 +1,9 @@
 .claude/
 .DS_Store
 Thumbs.db
+
+# .htpasswd sengaja tidak dilacak Git lagi mulai sekarang: file ini
+# diperbarui langsung di server oleh change-password.php (tab "Keamanan"
+# di admin.html). Kalau tetap dilacak Git, deploy berikutnya akan
+# menimpa password yang baru diganti admin kembali ke versi lama di repo.
+.htpasswd

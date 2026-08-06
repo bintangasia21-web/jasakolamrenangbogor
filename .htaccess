@@ -1,10 +1,9 @@
-# Proteksi Basic Auth khusus untuk admin.html
-# File .htpasswd TIDAK disimpan di repo Git (repo ini publik) — dibuat
-# manual langsung di server lewat File Manager Hostinger, sejajar dengan
-# file ini (di folder public_html).
-<Files "admin.html">
+# Proteksi Basic Auth untuk admin.html dan endpoint ganti password.
+# File .htpasswd tidak lagi dikelola lewat Git (lihat catatan di .gitignore)
+# supaya perubahan password lewat panel admin tidak tertimpa saat deploy.
+<FilesMatch "^(admin\.html|change-password\.php)$">
   AuthType Basic
   AuthName "Admin - Jasa Kolam Renang Bogor"
   AuthUserFile /home/u740832685/domains/jasakolamrenangbogor.com/public_html/.htpasswd
   Require valid-user
-</Files>
+</FilesMatch>
