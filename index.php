@@ -37,28 +37,6 @@ $areas = array_map(function ($r) {
     ];
 }, $areasRaw);
 
-function placeholder_initials($title) {
-    $words = preg_split('/\s+/', trim($title ?: 'Kolam Renang'));
-    $initials = '';
-    foreach (array_slice($words, 0, 2) as $w) {
-        if ($w !== '') $initials .= mb_strtoupper(mb_substr($w, 0, 1));
-    }
-    return $initials ?: 'KR';
-}
-
-function placeholder_svg($title, $color1, $color2) {
-    return '<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' . h($title) . '">'
-        . '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
-        . '<stop offset="0%" stop-color="' . h($color1) . '"/><stop offset="100%" stop-color="' . h($color2) . '"/>'
-        . '</linearGradient></defs>'
-        . '<rect width="400" height="300" fill="url(#g)"/>'
-        . '<path d="M0 230 Q 50 210 100 230 T 200 230 T 300 230 T 400 230 V300 H0 Z" fill="rgba(255,255,255,0.15)"/>'
-        . '<path d="M0 250 Q 50 232 100 250 T 200 250 T 300 250 T 400 250 V300 H0 Z" fill="rgba(255,255,255,0.22)"/>'
-        . '<circle cx="200" cy="120" r="46" fill="rgba(255,255,255,0.18)"/>'
-        . '<text x="200" y="132" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff" text-anchor="middle">' . h(placeholder_initials($title)) . '</text>'
-        . '</svg>';
-}
-
 $waHref = 'https://wa.me/' . $business['whatsapp'];
 ?>
 <!DOCTYPE html>
