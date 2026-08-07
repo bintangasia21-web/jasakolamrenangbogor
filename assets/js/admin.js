@@ -234,7 +234,7 @@
 
   function bindAreaButtons() {
     document.getElementById("btn-add-area").addEventListener("click", function () {
-      state.areas.push({ name: "Area Baru", link: "index.html#kontak", desc: "Deskripsi area layanan.", lat: null, lng: null, priority: true });
+      state.areas.push({ name: "Area Baru", link: "/", desc: "Deskripsi area layanan.", lat: null, lng: null, priority: true });
       renderAreas();
     });
     document.getElementById("btn-save-areas").addEventListener("click", function () {

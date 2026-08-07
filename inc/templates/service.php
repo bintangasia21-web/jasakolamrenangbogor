@@ -1,7 +1,7 @@
 <?php
 /** @var array $page */
 /** @var array $business */
-render_breadcrumbs([['Beranda', '/index.html'], ['Layanan', '/index.html#layanan'], [$page['title'], null]], $business);
+render_breadcrumbs([['Beranda', '/'], ['Layanan', '/layanan/'], [$page['title'], null]], $business);
 ?>
 <section class="hero">
   <div class="container">

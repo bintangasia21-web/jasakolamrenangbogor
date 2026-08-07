@@ -38,16 +38,16 @@ function render_header_nav($business) {
     ?>
 <header class="site-header">
   <div class="container nav">
-    <a href="/index.html" class="brand">
+    <a href="/" class="brand">
       <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"><path d="M2 17c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0"/><path d="M12 13V4l3 2"/></svg></span>
       <span><?= h($business['name']) ?></span>
     </a>
     <nav class="nav-links">
       <a href="/layanan/">Layanan</a>
       <a href="/area-layanan/">Area Layanan</a>
-      <a href="/index.html">Portofolio</a>
-      <a href="/index.html">FAQ</a>
-      <a href="/index.html">Kontak</a>
+      <a href="/">Portofolio</a>
+      <a href="/">FAQ</a>
+      <a href="/">Kontak</a>
     </nav>
     <div class="nav-cta">
       <a href="tel:<?= h($business['phoneHref']) ?>" class="nav-phone"><?= h($business['phoneDisplay']) ?></a>
@@ -85,7 +85,7 @@ function render_breadcrumbs($items, $business) {
     <?php
 }
 
-function render_local_business_ld($business) {
+function render_local_business_ld($business, $areas = []) {
     $ld = [
         '@context' => 'https://schema.org',
         '@type' => 'LocalBusiness',
@@ -102,7 +102,8 @@ function render_local_business_ld($business) {
             'addressRegion' => $business['region'],
             'postalCode' => $business['postalCode'],
             'addressCountry' => $business['country']
-        ]
+        ],
+        'areaServed' => array_map(function ($a) { return $a['name']; }, $areas)
     ];
     echo '<script type="application/ld+json">' . json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
 }
@@ -171,8 +172,8 @@ function render_footer($business) {
         <h4>Navigasi</h4>
         <a href="/layanan/">Layanan</a>
         <a href="/area-layanan/">Area Layanan</a>
-        <a href="/index.html">Portofolio &amp; FAQ</a>
-        <a href="/index.html">Kontak</a>
+        <a href="/">Portofolio &amp; FAQ</a>
+        <a href="/">Kontak</a>
       </div>
       <div>
         <h4>Area Layanan</h4>

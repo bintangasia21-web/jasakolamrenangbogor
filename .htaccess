@@ -1,3 +1,10 @@
+# Beranda dilayani oleh index.php (server-rendered dari database),
+# bukan index.html lagi. Eksplisit supaya tidak bergantung urutan
+# default server.
+<IfModule mod_dir.c>
+  DirectoryIndex index.php index.html
+</IfModule>
+
 # Proteksi Basic Auth untuk admin.html dan endpoint ganti password.
 # File .htpasswd tidak lagi dikelola lewat Git (lihat catatan di .gitignore)
 # supaya perubahan password lewat panel admin tidak tertimpa saat deploy.
@@ -28,11 +35,14 @@
 </IfModule>
 
 # Halaman area lama (file statis) dipindah ke struktur URL SEO baru.
+# index.html juga dipindah (sekarang index.php) — konsolidasi sinyal SEO
+# ke "/" dan menjaga link/bookmark lama yang mungkin sudah ter-index.
 <IfModule mod_alias.c>
   Redirect 301 /area-sentul.html /area/sentul/
   Redirect 301 /area-cibinong.html /area/cibinong/
   Redirect 301 /area-bogor-kota.html /area/bogor-kota/
   Redirect 301 /area-puncak.html /area/puncak/
+  Redirect 301 /index.html /
 </IfModule>
 
 # Routing dinamis untuk 300 halaman SEO/GEO (area, kombinasi, layanan,

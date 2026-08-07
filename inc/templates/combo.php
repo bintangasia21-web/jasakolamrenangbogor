@@ -9,8 +9,8 @@ array_pop($segments);
 $areaUrl = '/' . implode('/', $segments) . '/';
 
 render_breadcrumbs([
-    ['Beranda', '/index.html'],
-    ['Area Layanan', '/index.html#area'],
+    ['Beranda', '/'],
+    ['Area Layanan', '/area-layanan/'],
     [$areaName, $areaUrl],
     [$serviceName, null]
 ], $business);

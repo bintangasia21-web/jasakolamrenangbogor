@@ -1,33 +1,94 @@
+<?php
+/**
+ * Beranda — server-rendered penuh dari database (bukan lagi file statis
+ * yang diisi lewat JS). Konsisten dengan seluruh halaman lain di situs
+ * ini (lihat page-router.php + inc/templates/*.php) supaya SEO andal
+ * (HTML lengkap langsung dari server) dan tidak ada lagi dua sumber
+ * kebenaran yang harus disinkronkan manual.
+ */
+require_once __DIR__ . '/inc/db.php';
+require_once __DIR__ . '/inc/render-partials.php';
+
+try {
+    $pdo = get_db();
+    $business = $pdo->query('SELECT * FROM business WHERE id = 1')->fetch();
+    if (!$business) {
+        http_response_code(500);
+        exit('Konfigurasi bisnis belum ada.');
+    }
+    $areasRaw = $pdo->query('SELECT * FROM areas ORDER BY sort_order, id')->fetchAll();
+    $faq = array_map(function ($r) {
+        return ['q' => $r['question'], 'a' => $r['answer']];
+    }, $pdo->query('SELECT * FROM faq ORDER BY sort_order, id')->fetchAll());
+    $portfolio = $pdo->query('SELECT * FROM portfolio ORDER BY sort_order, id')->fetchAll();
+} catch (Exception $e) {
+    http_response_code(500);
+    exit('Terjadi kesalahan server.');
+}
+
+$areas = array_map(function ($r) {
+    return [
+        'name' => $r['name'],
+        'link' => $r['link'],
+        'desc' => $r['description'],
+        'lat' => $r['lat'] !== null ? (float) $r['lat'] : null,
+        'lng' => $r['lng'] !== null ? (float) $r['lng'] : null,
+        'priority' => (bool) $r['priority']
+    ];
+}, $areasRaw);
+
+function placeholder_initials($title) {
+    $words = preg_split('/\s+/', trim($title ?: 'Kolam Renang'));
+    $initials = '';
+    foreach (array_slice($words, 0, 2) as $w) {
+        if ($w !== '') $initials .= mb_strtoupper(mb_substr($w, 0, 1));
+    }
+    return $initials ?: 'KR';
+}
+
+function placeholder_svg($title, $color1, $color2) {
+    return '<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' . h($title) . '">'
+        . '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
+        . '<stop offset="0%" stop-color="' . h($color1) . '"/><stop offset="100%" stop-color="' . h($color2) . '"/>'
+        . '</linearGradient></defs>'
+        . '<rect width="400" height="300" fill="url(#g)"/>'
+        . '<path d="M0 230 Q 50 210 100 230 T 200 230 T 300 230 T 400 230 V300 H0 Z" fill="rgba(255,255,255,0.15)"/>'
+        . '<path d="M0 250 Q 50 232 100 250 T 200 250 T 300 250 T 400 250 V300 H0 Z" fill="rgba(255,255,255,0.22)"/>'
+        . '<circle cx="200" cy="120" r="46" fill="rgba(255,255,255,0.18)"/>'
+        . '<text x="200" y="132" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff" text-anchor="middle">' . h(placeholder_initials($title)) . '</text>'
+        . '</svg>';
+}
+
+$waHref = 'https://wa.me/' . $business['whatsapp'];
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jasa Kolam Renang Bogor | Pembuatan, Perawatan & Renovasi Kolam Renang</title>
-<meta name="description" content="Jasa Kolam Renang Bogor — spesialis pembuatan kolam renang baru, perawatan rutin, renovasi & perbaikan, serta instalasi sistem air di Sentul, Puncak, Ciawi, Bogor Kota, Cibinong, Yasmin, Cijeruk, Rancamaya, Bogor Raya, dan Karadenan.">
-<link rel="canonical" href="https://www.jasakolamrenangbogor.com/">
+<title>Jasa Kolam Renang Bogor | Pembuatan, Perawatan &amp; Renovasi Kolam Renang</title>
+<meta name="description" content="<?= h($business['description']) ?>">
+<link rel="canonical" href="<?= h(rtrim($business['domain'], '/')) ?>/">
 <meta name="robots" content="index, follow">
-
 <meta property="og:type" content="website">
-<meta property="og:title" content="Jasa Kolam Renang Bogor | Pembuatan, Perawatan & Renovasi Kolam Renang">
-<meta property="og:description" content="Spesialis pembuatan, perawatan, dan renovasi kolam renang di Bogor — Sentul, Puncak, Ciawi, Bogor Kota, Cibinong, Yasmin, Cijeruk, Rancamaya, Bogor Raya, dan Karadenan.">
-<meta property="og:url" content="https://www.jasakolamrenangbogor.com/">
-<meta property="og:image" content="https://www.jasakolamrenangbogor.com/assets/img/og-image.svg">
+<meta property="og:title" content="Jasa Kolam Renang Bogor | Pembuatan, Perawatan &amp; Renovasi Kolam Renang">
+<meta property="og:description" content="<?= h($business['description']) ?>">
+<meta property="og:url" content="<?= h(rtrim($business['domain'], '/')) ?>/">
+<meta property="og:image" content="<?= h(rtrim($business['domain'], '/')) ?>/assets/img/og-image.svg">
 <meta name="twitter:card" content="summary_large_image">
-
-<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
 
 <header class="site-header">
   <div class="container nav">
-    <a href="index.html" class="brand">
+    <a href="/" class="brand">
       <span class="brand-mark">
         <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"><path d="M2 17c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0"/><path d="M2 21c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0"/><path d="M12 13V4l3 2"/><circle cx="12" cy="4" r="1.2" fill="#ffffff"/></svg>
       </span>
-      <span data-field="name">Jasa Kolam Renang Bogor</span>
+      <span><?= h($business['name']) ?></span>
     </a>
     <nav class="nav-links">
       <a href="/layanan/">Layanan</a>
@@ -39,8 +100,8 @@
       <button type="button" data-scroll="kontak">Kontak</button>
     </nav>
     <div class="nav-cta">
-      <a href="tel:+6282216623388" data-href="tel" class="nav-phone">0822-1662-3388</a>
-      <a href="https://wa.me/6282216623388" data-href="wa" class="btn btn-primary">
+      <a href="tel:<?= h($business['phoneHref']) ?>" class="nav-phone"><?= h($business['phoneDisplay']) ?></a>
+      <a href="<?= h($waHref) ?>" class="btn btn-primary">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 20Zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1s-.6.8-.7.9-.3.1-.5 0a6.6 6.6 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.4l.4-.4.2-.4v-.3c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.4a.9.9 0 0 0-.6.3 2.7 2.7 0 0 0-.8 2 4.7 4.7 0 0 0 1 2.5 10.8 10.8 0 0 0 4.1 3.6c.6.2 1 .4 1.4.5a3.3 3.3 0 0 0 1.5.1 2.5 2.5 0 0 0 1.6-1.1 1.9 1.9 0 0 0 .1-1.1c-.1-.1-.2-.2-.4-.3Z"/></svg>
         Chat WhatsApp
       </a>
@@ -50,6 +111,8 @@
     </div>
   </div>
 </header>
+
+<?php render_local_business_ld($business, $areas); ?>
 
 <section class="hero">
   <div class="container hero-inner">
@@ -61,16 +124,16 @@
       <h1>Wujudkan Kolam Renang Impian Anda di Bogor</h1>
       <p class="lead">Kami melayani pembuatan kolam renang baru, perawatan rutin, renovasi & perbaikan, hingga instalasi sistem air — untuk rumah tinggal, villa, dan resort di Sentul, Puncak, Ciawi, Bogor Kota, Cibinong, Yasmin, dan area Bogor lainnya.</p>
       <div class="hero-actions">
-        <a href="https://wa.me/6282216623388" data-href="wa" class="btn btn-white">
+        <a href="<?= h($waHref) ?>" class="btn btn-white">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 20Zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1s-.6.8-.7.9-.3.1-.5 0a6.6 6.6 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.4l.4-.4.2-.4v-.3c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.4a.9.9 0 0 0-.6.3 2.7 2.7 0 0 0-.8 2 4.7 4.7 0 0 0 1 2.5 10.8 10.8 0 0 0 4.1 3.6c.6.2 1 .4 1.4.5a3.3 3.3 0 0 0 1.5.1 2.5 2.5 0 0 0 1.6-1.1 1.9 1.9 0 0 0 .1-1.1c-.1-.1-.2-.2-.4-.3Z"/></svg>
           Konsultasi Gratis via WhatsApp
         </a>
         <a href="/layanan/" class="btn btn-outline">Lihat Layanan Kami</a>
       </div>
       <div class="hero-stats">
-        <div><strong data-field="yearsExperience">10+</strong><span>Tahun Pengalaman</span></div>
-        <div><strong data-field="projectsDone">350+</strong><span>Proyek Selesai</span></div>
-        <div><strong>10+</strong><span>Area Layanan Utama</span></div>
+        <div><strong><?= (int) $business['yearsExperience'] ?>+</strong><span>Tahun Pengalaman</span></div>
+        <div><strong><?= (int) $business['projectsDone'] ?>+</strong><span>Proyek Selesai</span></div>
+        <div><strong><?= count($areas) ?>+</strong><span>Area Layanan Utama</span></div>
       </div>
     </div>
     <div class="hero-visual">
@@ -226,7 +289,15 @@
       <p>Klik area di bawah untuk melihat layanan yang disesuaikan dengan karakteristik masing-masing wilayah. Zona berwarna hijau pada peta menandai area prioritas layanan kami.</p>
     </div>
     <div class="area-map-wrap"><div id="area-map"></div></div>
-    <div class="area-grid" id="area-grid"></div>
+    <div class="area-grid" id="area-grid">
+      <?php foreach ($areas as $area): ?>
+      <a class="area-card" href="<?= h($area['link'] ?: '/') ?>">
+        <div class="area-chip-row"><span class="area-chip"><?= h($area['name']) ?></span><span class="arrow">&rarr;</span></div>
+        <h3>Kolam Renang <?= h($area['name']) ?></h3>
+        <p><?= h($area['desc']) ?></p>
+      </a>
+      <?php endforeach; ?>
+    </div>
   </div>
 </section>
 
@@ -237,8 +308,25 @@
       <h2>Contoh Pekerjaan Kami</h2>
       <p>Gambaran jenis proyek yang telah kami kerjakan di berbagai area Bogor.</p>
     </div>
-    <div class="portfolio-grid" id="portfolio-grid"></div>
-    <p class="portfolio-note">Gambar di atas adalah ilustrasi placeholder. Foto proyek asli dapat ditambahkan melalui panel admin (admin.html).</p>
+    <div class="portfolio-grid" id="portfolio-grid">
+      <?php foreach ($portfolio as $item): ?>
+      <div class="portfolio-card">
+        <div class="portfolio-thumb">
+          <?php if (!empty($item['image'])): ?>
+          <img src="<?= h($item['image']) ?>" alt="<?= h($item['title']) ?>" loading="lazy">
+          <?php else: ?>
+          <?= placeholder_svg($item['title'], $item['color1'] ?: '#1478c8', $item['color2'] ?: '#00b8d9') ?>
+          <?php endif; ?>
+        </div>
+        <div class="portfolio-body">
+          <span class="tag"><?= h($item['area']) ?></span>
+          <h3><?= h($item['title']) ?></h3>
+          <p><?= h($item['description']) ?></p>
+        </div>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <p class="portfolio-note">Gambar di atas adalah ilustrasi placeholder. Foto proyek asli dapat ditambahkan melalui panel admin.</p>
   </div>
 </section>
 
@@ -249,9 +337,26 @@
       <h2>Pertanyaan yang Sering Diajukan</h2>
       <p>Belum menemukan jawaban? Hubungi kami langsung melalui WhatsApp.</p>
     </div>
-    <div class="faq-list" id="faq-list"></div>
+    <div class="faq-list" id="faq-list">
+      <?php foreach ($faq as $i => $item): ?>
+      <details class="faq-item"<?= $i === 0 ? ' open' : '' ?>>
+        <summary><?= h($item['q']) ?></summary>
+        <p><?= h($item['a']) ?></p>
+      </details>
+      <?php endforeach; ?>
+    </div>
   </div>
 </section>
+<?php
+$faqLd = [
+    '@context' => 'https://schema.org',
+    '@type' => 'FAQPage',
+    'mainEntity' => array_map(function ($item) {
+        return ['@type' => 'Question', 'name' => $item['q'], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $item['a']]];
+    }, $faq)
+];
+echo '<script type="application/ld+json">' . json_encode($faqLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
+?>
 
 <section id="kontak">
   <div class="container">
@@ -266,28 +371,28 @@
         <ul class="contact-list">
           <li>
             <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.7a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2Z"/></svg></span>
-            <div><small>Telepon</small><a href="tel:+6282216623388" data-href="tel">0822-1662-3388</a></div>
+            <div><small>Telepon</small><a href="tel:<?= h($business['phoneHref']) ?>"><?= h($business['phoneDisplay']) ?></a></div>
           </li>
           <li>
             <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="m4 6 8 7 8-7"/></svg></span>
-            <div><small>Email</small><a href="mailto:info@jasakolamrenangbogor.com" data-href="mail">info@jasakolamrenangbogor.com</a></div>
+            <div><small>Email</small><a href="mailto:<?= h($business['email']) ?>"><?= h($business['email']) ?></a></div>
           </li>
           <li>
             <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
-            <div><small>Alamat</small><span data-field="addressLine">Gedung Dewata, Cimahpar Kav. 10, Cimahpar, Bogor</span></div>
+            <div><small>Alamat</small><span><?= h($business['addressLine']) ?></span></div>
           </li>
           <li>
             <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
-            <div><small>Jam Operasional</small><span data-field="hours">Senin–Jumat 08.00–17.00</span></div>
+            <div><small>Jam Operasional</small><span>Senin–Jumat <?= h($business['hoursWeekday']) ?> • Sabtu–Minggu <?= h($business['hoursWeekend']) ?></span></div>
           </li>
         </ul>
-        <a href="https://wa.me/6282216623388" data-href="wa" class="btn btn-wa btn-block">
+        <a href="<?= h($waHref) ?>" class="btn btn-wa btn-block">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 20Zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1s-.6.8-.7.9-.3.1-.5 0a6.6 6.6 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.4l.4-.4.2-.4v-.3c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.4a.9.9 0 0 0-.6.3 2.7 2.7 0 0 0-.8 2 4.7 4.7 0 0 0 1 2.5 10.8 10.8 0 0 0 4.1 3.6c.6.2 1 .4 1.4.5a3.3 3.3 0 0 0 1.5.1 2.5 2.5 0 0 0 1.6-1.1 1.9 1.9 0 0 0 .1-1.1c-.1-.1-.2-.2-.4-.3Z"/></svg>
           Chat via WhatsApp Sekarang
         </a>
       </div>
       <div class="map-frame">
-        <iframe data-map src="https://maps.google.com/maps?q=Gedung%20Dewata%2C%20Cimahpar%20Kav.%2010%2C%20Cimahpar%2C%20Bogor&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Peta Lokasi Jasa Kolam Renang Bogor"></iframe>
+        <iframe src="<?= h($business['mapsUrl']) ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Peta Lokasi <?= h($business['name']) ?>"></iframe>
       </div>
     </div>
   </div>
@@ -301,9 +406,9 @@
           <span class="brand-mark">
             <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"><path d="M2 17c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0"/><path d="M12 13V4l3 2"/></svg>
           </span>
-          <span data-field="name">Jasa Kolam Renang Bogor</span>
+          <span><?= h($business['name']) ?></span>
         </div>
-        <p data-field="description" style="max-width:340px">Spesialis pembuatan, perawatan, dan renovasi kolam renang di Bogor.</p>
+        <p style="max-width:340px"><?= h($business['description']) ?></p>
       </div>
       <div>
         <h4>Navigasi</h4>
@@ -314,25 +419,24 @@
       </div>
       <div>
         <h4>Area Layanan</h4>
-        <a href="/area/sentul/">Sentul</a>
-        <a href="/area/puncak/">Puncak</a>
-        <a href="/area/bogor-kota/">Bogor Kota</a>
-        <a href="/area/cibinong/">Cibinong</a>
+        <?php foreach (array_slice($areas, 0, 4) as $area): ?>
+        <a href="<?= h($area['link'] ?: '/') ?>"><?= h($area['name']) ?></a>
+        <?php endforeach; ?>
         <a href="/area-layanan/">Lihat Semua Area &rarr;</a>
       </div>
     </div>
     <div class="footer-bottom">
-      &copy; <span id="year">2026</span> <span data-field="name">Jasa Kolam Renang Bogor</span>. Seluruh hak cipta dilindungi. — jasakolamrenangbogor.com
+      &copy; <span id="year"><?= date('Y') ?></span> <?= h($business['name']) ?>. Seluruh hak cipta dilindungi. — <?= h(preg_replace('#^https?://#', '', $business['domain'])) ?>
     </div>
   </div>
 </footer>
 
-<a href="https://wa.me/6282216623388" data-href="wa" id="wa-float" class="wa-float" aria-label="Chat WhatsApp">
+<a href="<?= h($waHref) ?>" id="wa-float" class="wa-float" aria-label="Chat WhatsApp">
   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 20Zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1s-.6.8-.7.9-.3.1-.5 0a6.6 6.6 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.4l.4-.4.2-.4v-.3c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.4a.9.9 0 0 0-.6.3 2.7 2.7 0 0 0-.8 2 4.7 4.7 0 0 0 1 2.5 10.8 10.8 0 0 0 4.1 3.6c.6.2 1 .4 1.4.5a3.3 3.3 0 0 0 1.5.1 2.5 2.5 0 0 0 1.6-1.1 1.9 1.9 0 0 0 .1-1.1c-.1-.1-.2-.2-.4-.3Z"/></svg>
 </a>
 
+<script>window.AREA_MAP_DATA = <?= json_encode($areas, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;</script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="assets/js/data.js"></script>
 <script src="assets/js/main.js"></script>
 </body>
 </html>

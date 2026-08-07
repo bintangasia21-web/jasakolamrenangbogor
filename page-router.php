@@ -21,6 +21,7 @@ try {
         http_response_code(500);
         exit('Konfigurasi bisnis belum ada.');
     }
+    $areas = $pdo->query('SELECT name FROM areas ORDER BY sort_order, id')->fetchAll();
 
     $stmt = $pdo->prepare('SELECT * FROM pages WHERE url_path = :p AND status = "published" LIMIT 1');
     $stmt->execute([':p' => $path]);
@@ -40,7 +41,7 @@ if (!$page) {
         <div style="max-width:600px">
           <h1>Halaman Tidak Ditemukan</h1>
           <p class="lead">Maaf, halaman yang Anda cari tidak tersedia atau sudah dipindahkan.</p>
-          <a href="/index.html" class="btn btn-white">Kembali ke Beranda</a>
+          <a href="/" class="btn btn-white">Kembali ke Beranda</a>
         </div>
       </div>
     </section>
@@ -65,6 +66,6 @@ if (!file_exists($templateFile)) {
 
 render_head($page, $business);
 render_header_nav($business);
-render_local_business_ld($business);
+render_local_business_ld($business, $areas);
 require $templateFile;
 render_footer($business);
