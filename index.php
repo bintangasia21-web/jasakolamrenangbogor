@@ -82,35 +82,7 @@ $waHref = 'https://wa.me/' . $business['whatsapp'];
 </head>
 <body>
 
-<header class="site-header">
-  <div class="container nav">
-    <a href="/" class="brand">
-      <span class="brand-mark">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"><path d="M2 17c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0"/><path d="M2 21c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0"/><path d="M12 13V4l3 2"/><circle cx="12" cy="4" r="1.2" fill="#ffffff"/></svg>
-      </span>
-      <span><?= h($business['name']) ?></span>
-    </a>
-    <nav class="nav-links">
-      <a href="/layanan/">Layanan</a>
-      <button type="button" data-scroll="kenapa-kami">Kenapa Kami</button>
-      <button type="button" data-scroll="cara-kerja">Cara Kerja</button>
-      <a href="/area-layanan/">Area Layanan</a>
-      <button type="button" data-scroll="portofolio">Portofolio</button>
-      <button type="button" data-scroll="faq">FAQ</button>
-      <button type="button" data-scroll="kontak">Kontak</button>
-    </nav>
-    <div class="nav-cta">
-      <a href="tel:<?= h($business['phoneHref']) ?>" class="nav-phone"><?= h($business['phoneDisplay']) ?></a>
-      <a href="<?= h($waHref) ?>" class="btn btn-primary">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 20Zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1s-.6.8-.7.9-.3.1-.5 0a6.6 6.6 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.4l.4-.4.2-.4v-.3c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.4a.9.9 0 0 0-.6.3 2.7 2.7 0 0 0-.8 2 4.7 4.7 0 0 0 1 2.5 10.8 10.8 0 0 0 4.1 3.6c.6.2 1 .4 1.4.5a3.3 3.3 0 0 0 1.5.1 2.5 2.5 0 0 0 1.6-1.1 1.9 1.9 0 0 0 .1-1.1c-.1-.1-.2-.2-.4-.3Z"/></svg>
-        Chat WhatsApp
-      </a>
-      <button class="nav-toggle" aria-label="Buka menu">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-      </button>
-    </div>
-  </div>
-</header>
+<?php render_header_nav($business); ?>
 
 <?php render_local_business_ld($business, $areas); ?>
 
