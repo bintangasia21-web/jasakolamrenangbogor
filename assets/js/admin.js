@@ -295,10 +295,17 @@
         "</div>" +
         field("Deskripsi", "textarea", "desc", item.desc) +
         field("URL Gambar (opsional)", "text", "image", item.image || "") +
+        '<small class="picker-hint">Isi dengan tautan gambar biasa (https://... atau assets/...). JANGAN tempel kode base64/data:image di sini — gunakan tombol unggah di bawah.</small>' +
         '<div class="field"><label>Atau unggah foto (langsung live)</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-upload="' + idx + '"><small data-upload-status>Foto yang diunggah langsung tersimpan di server dan tampil bagi semua pengunjung.</small></div>';
 
+      var MAX_IMAGE_URL_LENGTH = 500;
       card.querySelectorAll("[data-field]").forEach(function (inp) {
         inp.addEventListener("input", function () {
+          if (inp.dataset.field === "image" && inp.value.length > MAX_IMAGE_URL_LENGTH) {
+            inp.value = "";
+            toast("Teks terlalu panjang untuk kolom URL (kemungkinan kode base64). Gunakan tombol \"Atau unggah foto\" di bawahnya untuk mengunggah file.");
+            return;
+          }
           state.portfolio[idx][inp.dataset.field] = inp.value;
           if (inp.dataset.field === "image") updateThumb(card, state.portfolio[idx]);
         });

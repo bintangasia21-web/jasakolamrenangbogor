@@ -35,6 +35,16 @@ if (json_last_error() !== JSON_ERROR_NONE || !is_array($payload)) {
     respond(false, 'Data yang dikirim tidak valid.');
 }
 
+// Cegah base64/data URI raksasa nyasar ke kolom URL gambar (harus pakai
+// upload-photo.php, yang menghasilkan path file biasa, bukan data: URI).
+if ($section === 'portfolio') {
+    foreach ($payload as $item) {
+        if (isset($item['image']) && is_string($item['image']) && strlen($item['image']) > 500) {
+            respond(false, 'Salah satu URL gambar terlalu panjang (kemungkinan base64). Gunakan tombol unggah foto, bukan tempel teks ke kolom URL.');
+        }
+    }
+}
+
 $dataFile = __DIR__ . '/assets/js/data.json';
 $defaultFile = __DIR__ . '/assets/js/data.default.json';
 
