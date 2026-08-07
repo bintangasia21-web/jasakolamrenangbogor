@@ -229,7 +229,7 @@
     injectJsonLd("faq-jsonld", ld);
   }
 
-  function renderLocalBusinessLd(business) {
+  function renderLocalBusinessLd(business, areas) {
     var ld = {
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
@@ -249,7 +249,7 @@
         postalCode: business.postalCode,
         addressCountry: business.country
       },
-      areaServed: (window.SITE_DATA.areas || []).map(function (a) { return a.name; }),
+      areaServed: (areas || []).map(function (a) { return a.name; }),
       openingHoursSpecification: [
         {
           "@type": "OpeningHoursSpecification",
@@ -307,7 +307,7 @@
       renderAreaMap(data.areas || []);
       renderPortfolio(data.portfolio || []);
       renderFaq(data.faq || []);
-      if (!window.SITE_SKIP_AUTO_LD) renderLocalBusinessLd(data.business);
+      if (!window.SITE_SKIP_AUTO_LD) renderLocalBusinessLd(data.business, data.areas);
       bindNav();
       bindWaFloat(data.business);
     });
