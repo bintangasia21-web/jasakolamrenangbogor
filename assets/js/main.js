@@ -285,12 +285,19 @@
       toggle.addEventListener("click", function () {
         links.classList.toggle("open");
       });
-      links.querySelectorAll("a").forEach(function (a) {
-        a.addEventListener("click", function () { links.classList.remove("open"); });
+      links.querySelectorAll("a, button").forEach(function (el) {
+        el.addEventListener("click", function () { links.classList.remove("open"); });
       });
     }
     var year = document.getElementById("year");
     if (year) year.textContent = new Date().getFullYear();
+
+    document.querySelectorAll("[data-scroll]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var target = document.getElementById(el.getAttribute("data-scroll"));
+        if (target) target.scrollIntoView({ behavior: "smooth" });
+      });
+    });
   }
 
   function bindWaFloat(business) {

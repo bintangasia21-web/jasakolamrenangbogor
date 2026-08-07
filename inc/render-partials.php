@@ -43,11 +43,11 @@ function render_header_nav($business) {
       <span><?= h($business['name']) ?></span>
     </a>
     <nav class="nav-links">
-      <a href="/index.html#layanan">Layanan</a>
-      <a href="/index.html#area">Area Layanan</a>
-      <a href="/index.html#portofolio">Portofolio</a>
-      <a href="/index.html#faq">FAQ</a>
-      <a href="/index.html#kontak">Kontak</a>
+      <a href="/layanan/">Layanan</a>
+      <a href="/area-layanan/">Area Layanan</a>
+      <a href="/index.html">Portofolio</a>
+      <a href="/index.html">FAQ</a>
+      <a href="/index.html">Kontak</a>
     </nav>
     <div class="nav-cta">
       <a href="tel:<?= h($business['phoneHref']) ?>" class="nav-phone"><?= h($business['phoneDisplay']) ?></a>
@@ -169,10 +169,10 @@ function render_footer($business) {
       </div>
       <div>
         <h4>Navigasi</h4>
-        <a href="/index.html#layanan">Layanan</a>
-        <a href="/index.html#portofolio">Portofolio</a>
-        <a href="/index.html#faq">FAQ</a>
-        <a href="/index.html#kontak">Kontak</a>
+        <a href="/layanan/">Layanan</a>
+        <a href="/area-layanan/">Area Layanan</a>
+        <a href="/index.html">Portofolio &amp; FAQ</a>
+        <a href="/index.html">Kontak</a>
       </div>
       <div>
         <h4>Area Layanan</h4>
