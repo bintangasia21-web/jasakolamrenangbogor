@@ -62,9 +62,20 @@ try {
         $stmt->execute($fields);
         $id = $data['id'];
     } else {
-        $stmt = $pdo->prepare('INSERT INTO pages (type, tier, url_path, title, meta_title, meta_description, target_keyword, h1, area_ref, service_ref, intro, content, faq_json, status) VALUES (:type,:tier,:url_path,:title,:meta_title,:meta_description,:target_keyword,:h1,:area_ref,:service_ref,:intro,:content,:faq_json,:status)');
+        // Tanpa id: upsert berdasar url_path (bisa jadi baris sudah ada dari
+        // import-pages.php sebagai draft) supaya tidak gagal karena UNIQUE.
+        $stmt = $pdo->prepare(
+            'INSERT INTO pages (type, tier, url_path, title, meta_title, meta_description, target_keyword, h1, area_ref, service_ref, intro, content, faq_json, status)
+             VALUES (:type,:tier,:url_path,:title,:meta_title,:meta_description,:target_keyword,:h1,:area_ref,:service_ref,:intro,:content,:faq_json,:status)
+             ON DUPLICATE KEY UPDATE type=VALUES(type), tier=VALUES(tier), title=VALUES(title), meta_title=VALUES(meta_title),
+               meta_description=VALUES(meta_description), target_keyword=VALUES(target_keyword), h1=VALUES(h1),
+               area_ref=VALUES(area_ref), service_ref=VALUES(service_ref), intro=VALUES(intro), content=VALUES(content),
+               faq_json=VALUES(faq_json), status=VALUES(status)'
+        );
         $stmt->execute($fields);
-        $id = $pdo->lastInsertId();
+        $idRow = $pdo->prepare('SELECT id FROM pages WHERE url_path = :url_path');
+        $idRow->execute([':url_path' => $urlPath]);
+        $id = $idRow->fetchColumn();
     }
     respond(true, 'Halaman berhasil disimpan.', ['id' => $id, 'url_path' => $urlPath]);
 } catch (Exception $e) {
