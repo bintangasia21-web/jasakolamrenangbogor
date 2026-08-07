@@ -315,36 +315,7 @@ echo '<script type="application/ld+json">' . json_encode($faqLd, JSON_UNESCAPED_
       <h2>Hubungi Kami</h2>
       <p>Konsultasikan kebutuhan kolam renang Anda, gratis tanpa biaya survei awal.</p>
     </div>
-    <div class="contact-grid">
-      <div class="contact-card">
-        <h3>Informasi Kontak</h3>
-        <ul class="contact-list">
-          <li>
-            <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.7a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2Z"/></svg></span>
-            <div><small>Telepon</small><a href="tel:<?= h($business['phoneHref']) ?>"><?= h($business['phoneDisplay']) ?></a></div>
-          </li>
-          <li>
-            <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="m4 6 8 7 8-7"/></svg></span>
-            <div><small>Email</small><a href="mailto:<?= h($business['email']) ?>"><?= h($business['email']) ?></a></div>
-          </li>
-          <li>
-            <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
-            <div><small>Alamat</small><span><?= h($business['addressLine']) ?></span></div>
-          </li>
-          <li>
-            <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
-            <div><small>Jam Operasional</small><span>Senin–Jumat <?= h($business['hoursWeekday']) ?> • Sabtu–Minggu <?= h($business['hoursWeekend']) ?></span></div>
-          </li>
-        </ul>
-        <a href="<?= h($waHref) ?>" class="btn btn-wa btn-block">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 20Zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1s-.6.8-.7.9-.3.1-.5 0a6.6 6.6 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.4l.4-.4.2-.4v-.3c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.4a.9.9 0 0 0-.6.3 2.7 2.7 0 0 0-.8 2 4.7 4.7 0 0 0 1 2.5 10.8 10.8 0 0 0 4.1 3.6c.6.2 1 .4 1.4.5a3.3 3.3 0 0 0 1.5.1 2.5 2.5 0 0 0 1.6-1.1 1.9 1.9 0 0 0 .1-1.1c-.1-.1-.2-.2-.4-.3Z"/></svg>
-          Chat via WhatsApp Sekarang
-        </a>
-      </div>
-      <div class="map-frame">
-        <iframe src="<?= h($business['mapsUrl']) ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Peta Lokasi <?= h($business['name']) ?>"></iframe>
-      </div>
-    </div>
+    <?php render_contact_block($business); ?>
   </div>
 </section>
 
