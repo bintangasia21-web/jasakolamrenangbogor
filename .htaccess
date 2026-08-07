@@ -51,6 +51,14 @@
 # dinamis (bukan file statis) supaya selalu akurat & kebal dari deploy.
 <IfModule mod_rewrite.c>
   RewriteEngine On
+
+  # Konsolidasi domain: www dan non-www sebelumnya sama-sama hidup
+  # sendiri-sendiri (200 OK, tanpa redirect) — Google melihatnya sebagai
+  # dua alamat terpisah untuk tiap halaman (duplicate content). Domain
+  # resmi = tanpa www, sesuai canonical tag & data bisnis.
+  RewriteCond %{HTTP_HOST} ^www\.jasakolamrenangbogor\.com$ [NC]
+  RewriteRule ^(.*)$ https://jasakolamrenangbogor.com/$1 [R=301,L]
+
   RewriteRule ^sitemap\.xml$ sitemap-generator.php [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
