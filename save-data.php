@@ -39,26 +39,25 @@ $dataFile = __DIR__ . '/assets/js/data.json';
 $defaultFile = __DIR__ . '/assets/js/data.default.json';
 
 // data.json sengaja tidak dilacak Git (lihat .gitignore) supaya bisa ditulis
-// bebas oleh endpoint ini. Kalau proses deploy pernah menghapusnya, pulihkan
-// otomatis dari data.default.json (file baca-saja yang selalu ikut ter-deploy).
-if (!file_exists($dataFile)) {
-    if (!file_exists($defaultFile)) {
-        respond(false, 'data.json dan data.default.json sama-sama tidak ada di server. Hubungi pengembang.');
-    }
-    if (!copy($defaultFile, $dataFile)) {
-        respond(false, 'Gagal memulihkan data.json dari template default.');
-    }
+// bebas oleh endpoint ini. Kalau proses deploy pernah menghapusnya, ATAU
+// isinya rusak/bukan JSON valid (mis. tertimpa file lain secara tidak
+// sengaja), pulihkan otomatis dari data.default.json (file baca-saja yang
+// selalu ikut ter-deploy) sebelum menerapkan perubahan yang diminta.
+$current = null;
+if (file_exists($dataFile) && is_readable($dataFile)) {
+    $current = json_decode(file_get_contents($dataFile), true);
 }
-if (!is_readable($dataFile)) {
-    respond(false, 'data.json tidak bisa dibaca. Cek izin file di server.');
-}
-if (!is_writable($dataFile)) {
-    respond(false, 'data.json tidak bisa ditulis. Cek izin file di server.');
-}
-
-$current = json_decode(file_get_contents($dataFile), true);
 if (!is_array($current)) {
-    respond(false, 'data.json rusak/tidak valid, hubungi pengembang.');
+    if (!file_exists($defaultFile) || !is_readable($defaultFile)) {
+        respond(false, 'data.json rusak dan data.default.json tidak ada/tidak bisa dibaca. Hubungi pengembang.');
+    }
+    $current = json_decode(file_get_contents($defaultFile), true);
+    if (!is_array($current)) {
+        respond(false, 'data.default.json juga rusak/tidak valid. Hubungi pengembang.');
+    }
+}
+if (file_exists($dataFile) && !is_writable($dataFile)) {
+    respond(false, 'data.json tidak bisa ditulis. Cek izin file di server.');
 }
 
 $current[$section] = $payload;
