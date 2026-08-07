@@ -56,3 +56,14 @@ CREATE TABLE IF NOT EXISTS portfolio (
   color2 VARCHAR(20) DEFAULT NULL,
   sort_order INT NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Foto disimpan sebagai data biner LANGSUNG di database (bukan file di
+-- server) supaya kebal terhadap proses deploy yang bisa menghapus file
+-- di luar Git. portfolio.image menyimpan referensi "photo.php?id=<id>"
+-- yang menunjuk ke baris di tabel ini.
+CREATE TABLE IF NOT EXISTS photos (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  mime_type VARCHAR(50) NOT NULL,
+  data LONGBLOB NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
