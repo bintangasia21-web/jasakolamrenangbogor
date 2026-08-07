@@ -7,3 +7,13 @@
   AuthUserFile /home/u740832685/domains/jasakolamrenangbogor.com/public_html/.htpasswd
   Require valid-user
 </FilesMatch>
+
+# Cegah browser memakai versi lama JS/CSS yang ter-cache setelah situs
+# diperbarui (mis. logika panel admin berubah tapi browser masih pakai
+# admin.js versi sebelumnya). Browser tetap boleh menyimpan salinan,
+# tapi wajib cek dulu ke server apakah ada versi lebih baru (revalidate).
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
