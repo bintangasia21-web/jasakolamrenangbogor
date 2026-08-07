@@ -67,3 +67,28 @@ CREATE TABLE IF NOT EXISTS photos (
   data LONGBLOB NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Fondasi 300 halaman SEO/GEO (area, kombinasi layanan x area, layanan,
+-- artikel, portofolio, halaman pendukung). url_path adalah kunci unik
+-- yang dipakai page-router.php untuk mencari halaman mana yang harus
+-- ditampilkan untuk sebuah URL.
+CREATE TABLE IF NOT EXISTS pages (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  type ENUM('area','service','combo','article','portfolio','page') NOT NULL,
+  tier VARCHAR(100) DEFAULT NULL,
+  url_path VARCHAR(255) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  meta_title VARCHAR(255) DEFAULT NULL,
+  meta_description VARCHAR(500) DEFAULT NULL,
+  target_keyword VARCHAR(255) DEFAULT NULL,
+  h1 VARCHAR(255) DEFAULT NULL,
+  area_ref VARCHAR(191) DEFAULT NULL,
+  service_ref VARCHAR(191) DEFAULT NULL,
+  intro TEXT,
+  content LONGTEXT,
+  faq_json TEXT,
+  status ENUM('draft','published') NOT NULL DEFAULT 'draft',
+  sort_order INT NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uniq_url_path (url_path)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

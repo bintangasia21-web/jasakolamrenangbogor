@@ -1,7 +1,7 @@
 # Proteksi Basic Auth untuk admin.html dan endpoint ganti password.
 # File .htpasswd tidak lagi dikelola lewat Git (lihat catatan di .gitignore)
 # supaya perubahan password lewat panel admin tidak tertimpa saat deploy.
-<FilesMatch "^(admin\.html|change-password\.php|upload-photo\.php|save-data\.php|migrate-to-db\.php|setup-schema\.php)$">
+<FilesMatch "^(admin\.html|change-password\.php|upload-photo\.php|save-data\.php|migrate-to-db\.php|setup-schema\.php|get-pages\.php|save-page\.php|import-pages\.php)$">
   AuthType Basic
   AuthName "Admin - Jasa Kolam Renang Bogor"
   AuthUserFile /home/u740832685/domains/jasakolamrenangbogor.com/public_html/.htpasswd
@@ -25,4 +25,24 @@
   <FilesMatch "\.(js|css)$">
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
+</IfModule>
+
+# Halaman area lama (file statis) dipindah ke struktur URL SEO baru.
+<IfModule mod_alias.c>
+  Redirect 301 /area-sentul.html /area/sentul/
+  Redirect 301 /area-cibinong.html /area/cibinong/
+  Redirect 301 /area-bogor-kota.html /area/bogor-kota/
+  Redirect 301 /area-puncak.html /area/puncak/
+</IfModule>
+
+# Routing dinamis untuk 300 halaman SEO/GEO (area, kombinasi, layanan,
+# artikel, portofolio, halaman pendukung) — dibaca dari database lewat
+# page-router.php, bukan file per halaman. sitemap.xml juga dihasilkan
+# dinamis (bukan file statis) supaya selalu akurat & kebal dari deploy.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^sitemap\.xml$ sitemap-generator.php [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ page-router.php?path=$1 [L,QSA]
 </IfModule>

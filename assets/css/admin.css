@@ -64,6 +64,14 @@ body.admin-body { background: var(--gray-50); }
 #admin-picker-map { height: 320px; width: 100%; background: var(--blue-100); z-index: 0; }
 .picker-hint { display: block; color: var(--gray-500); margin-top: 8px; }
 
+.data-table { width: 100%; border-collapse: collapse; font-size: .86rem; min-width: 760px; }
+.data-table th, .data-table td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--gray-100); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+.data-table th { background: var(--gray-50); font-size: .74rem; text-transform: uppercase; letter-spacing: .03em; color: var(--gray-600); }
+.data-table tbody tr:hover { background: var(--blue-50); }
+.status-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .74rem; font-weight: 700; }
+.status-badge.draft { background: var(--gray-100); color: var(--gray-600); }
+.status-badge.published { background: #d9f7e6; color: #1a7a45; }
+
 .toast {
   position: fixed; bottom: 24px; right: 24px; background: var(--blue-900); color: #fff;
   padding: 12px 20px; border-radius: 10px; box-shadow: var(--shadow-lg); font-size: .88rem;

@@ -23,6 +23,7 @@
       <button type="button" data-tab="area">Area Layanan</button>
       <button type="button" data-tab="faq">FAQ</button>
       <button type="button" data-tab="foto">Foto / Portofolio</button>
+      <button type="button" data-tab="halaman">Halaman SEO</button>
       <div class="divider"></div>
       <button type="button" data-tab="preview">Pratinjau Situs</button>
       <button type="button" data-tab="data">Ekspor / Impor Data</button>
@@ -126,6 +127,99 @@
         <button type="button" id="btn-save-portfolio" class="btn btn-primary">Simpan Portofolio</button>
       </div>
       <div id="portfolio-list-admin"></div>
+    </section>
+
+    <!-- Halaman SEO -->
+    <section id="panel-halaman" class="admin-panel">
+      <h2>Halaman SEO</h2>
+      <p class="panel-desc">Kelola halaman area, kombinasi layanan×area, layanan, artikel, portofolio, dan halaman pendukung dalam satu daftar. Status "Diterbitkan" langsung live di situs seketika, tanpa perlu deploy.</p>
+
+      <div class="admin-card">
+        <div class="admin-card-head"><h3>Impor Massal dari Spreadsheet</h3></div>
+        <p style="color:var(--gray-600);font-size:.88rem">Tempel data dari spreadsheet (kolom: No, Prioritas, Kategori, Judul Halaman, URL, Target Kata Kunci, Status — dipisah tab, baris pertama header). Halaman yang sudah ada (URL sama) tidak akan tertimpa kontennya, hanya tier & keyword yang diperbarui.</p>
+        <textarea id="import-textarea" class="code" style="min-height:120px" placeholder="Tempel data (format tab-separated) di sini..."></textarea>
+        <button type="button" id="btn-import-pages" class="btn btn-secondary btn-sm" style="margin-top:10px">Impor Data</button>
+      </div>
+
+      <div class="toolbar">
+        <input type="text" id="pages-search" placeholder="Cari judul/URL/keyword..." style="flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--gray-300);border-radius:8px">
+        <select id="pages-filter-type" style="padding:10px 12px;border:1px solid var(--gray-300);border-radius:8px">
+          <option value="">Semua Tipe</option>
+          <option value="area">Area</option>
+          <option value="combo">Kombinasi</option>
+          <option value="service">Layanan</option>
+          <option value="article">Artikel</option>
+          <option value="portfolio">Portofolio</option>
+          <option value="page">Pendukung</option>
+        </select>
+        <select id="pages-filter-status" style="padding:10px 12px;border:1px solid var(--gray-300);border-radius:8px">
+          <option value="">Semua Status</option>
+          <option value="draft">Draft</option>
+          <option value="published">Diterbitkan</option>
+        </select>
+        <button type="button" id="btn-add-page" class="btn btn-secondary btn-sm">+ Tambah Halaman</button>
+        <button type="button" id="btn-refresh-pages" class="btn btn-ghost btn-sm">Muat Ulang</button>
+      </div>
+
+      <div id="pages-count" style="color:var(--gray-500);font-size:.85rem;margin-bottom:10px"></div>
+      <div class="admin-card" style="padding:0;overflow-x:auto">
+        <table class="data-table" id="pages-table">
+          <thead>
+            <tr><th>Tier</th><th>Judul</th><th>URL</th><th>Keyword</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="pages-table-body"></tbody>
+        </table>
+      </div>
+      <div class="toolbar" id="pages-pagination" style="margin-top:14px"></div>
+
+      <!-- Form edit/tambah halaman -->
+      <div class="admin-card" id="page-editor" style="display:none;margin-top:20px">
+        <div class="admin-card-head"><h3 id="page-editor-title">Edit Halaman</h3><button type="button" class="btn btn-sm btn-ghost" id="btn-close-editor">Tutup</button></div>
+        <input type="hidden" id="pe-id">
+        <div class="form-grid">
+          <div class="field"><label>Tipe Halaman</label>
+            <select id="pe-type">
+              <option value="area">Area</option>
+              <option value="combo">Kombinasi Layanan × Area</option>
+              <option value="service">Layanan</option>
+              <option value="article">Artikel</option>
+              <option value="portfolio">Portofolio</option>
+              <option value="page">Halaman Pendukung</option>
+            </select>
+          </div>
+          <div class="field"><label>Status</label>
+            <select id="pe-status">
+              <option value="draft">Draft</option>
+              <option value="published">Diterbitkan (Live)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label>Tier / Kategori Prioritas</label><input type="text" id="pe-tier" placeholder="Tier 1 - Area Prioritas"></div>
+          <div class="field"><label>URL Path</label><input type="text" id="pe-url" placeholder="/area/sentul/"></div>
+        </div>
+        <div class="field full"><label>Judul Halaman</label><input type="text" id="pe-title"></div>
+        <div class="form-grid">
+          <div class="field"><label>Meta Title (opsional)</label><input type="text" id="pe-meta-title"></div>
+          <div class="field"><label>Target Kata Kunci</label><input type="text" id="pe-keyword"></div>
+        </div>
+        <div class="field full"><label>Meta Description (opsional)</label><textarea id="pe-meta-desc" style="min-height:50px"></textarea></div>
+        <div class="form-grid">
+          <div class="field"><label>H1 (opsional, default = Judul)</label><input type="text" id="pe-h1"></div>
+          <div class="field"><label>Area Terkait (untuk tipe Area/Kombinasi)</label><input type="text" id="pe-area-ref"></div>
+        </div>
+        <div class="field full"><label>Layanan Terkait (untuk tipe Kombinasi)</label><input type="text" id="pe-service-ref"></div>
+        <div class="field full"><label>Intro / Lead Paragraph</label><textarea id="pe-intro" style="min-height:60px"></textarea></div>
+        <div class="field full"><label>Konten (HTML)</label><textarea id="pe-content" class="code" style="min-height:220px"></textarea></div>
+
+        <div class="admin-card-head" style="margin-top:16px"><h3>FAQ Halaman (opsional)</h3><button type="button" class="btn btn-sm btn-secondary" id="btn-pe-add-faq">+ Tambah FAQ</button></div>
+        <div id="pe-faq-list"></div>
+
+        <div class="toolbar" style="margin-top:16px">
+          <button type="button" class="btn btn-primary" id="btn-save-page">Simpan Halaman</button>
+        </div>
+        <p id="page-editor-msg" style="margin-top:10px;font-size:.88rem"></p>
+      </div>
     </section>
 
     <!-- Pratinjau -->
