@@ -13,3 +13,7 @@ Thumbs.db
 # foto portofolio dsb). Kalau tetap dilacak Git, deploy berikutnya akan
 # menimpa foto/perubahan yang sudah live kembali ke versi lama di repo.
 assets/js/data.json
+
+# db-config.php berisi kredensial MySQL asli — dibuat manual di server
+# (salin dari db-config.example.php), tidak boleh pernah masuk Git.
+db-config.php

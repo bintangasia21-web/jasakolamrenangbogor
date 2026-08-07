@@ -1,12 +1,21 @@
 # Proteksi Basic Auth untuk admin.html dan endpoint ganti password.
 # File .htpasswd tidak lagi dikelola lewat Git (lihat catatan di .gitignore)
 # supaya perubahan password lewat panel admin tidak tertimpa saat deploy.
-<FilesMatch "^(admin\.html|change-password\.php|upload-photo\.php|save-data\.php)$">
+<FilesMatch "^(admin\.html|change-password\.php|upload-photo\.php|save-data\.php|migrate-to-db\.php)$">
   AuthType Basic
   AuthName "Admin - Jasa Kolam Renang Bogor"
   AuthUserFile /home/u740832685/domains/jasakolamrenangbogor.com/public_html/.htpasswd
   Require valid-user
 </FilesMatch>
+
+# db-config.php (kredensial database) dan inc/*.php (kode internal) tidak
+# boleh diakses langsung lewat browser, hanya lewat require di PHP lain.
+<FilesMatch "^db-config(\.example)?\.php$">
+  Require all denied
+</FilesMatch>
+<IfModule mod_alias.c>
+  RedirectMatch 403 ^/inc/.*\.php$
+</IfModule>
 
 # Cegah browser memakai versi lama JS/CSS yang ter-cache setelah situs
 # diperbarui (mis. logika panel admin berubah tapi browser masih pakai

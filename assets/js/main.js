@@ -1,12 +1,11 @@
 /*
  * main.js — Merender bagian dinamis halaman publik (index.html).
- * Sumber data utama: assets/js/data.json (live, diperbarui langsung oleh
- * panel admin lewat save-data.php — mis. saat upload foto portofolio).
- * Jika data.json gagal diambil (mis. dibuka lewat file://), dipakai
- * window.SITE_DATA dari data.js sebagai cadangan.
+ * Sumber data utama: get-data.php (baca dari database MySQL, live,
+ * diperbarui langsung oleh panel admin lewat save-data.php).
+ * Jika endpoint gagal diambil (mis. dibuka lewat file://, atau database
+ * bermasalah), dipakai window.SITE_DATA dari data.js sebagai cadangan.
  * localStorage ("jkrb_data") tetap dipakai sebagai lapisan pratinjau
- * lokal khusus browser admin untuk bagian yang belum live (info bisnis,
- * area, FAQ).
+ * lokal tambahan di browser admin (di atas data live).
  * Juga menghasilkan JSON-LD LocalBusiness & FAQPage secara otomatis agar
  * selalu sinkron dengan konten FAQ dan info bisnis yang tampil.
  */
@@ -16,9 +15,9 @@
   var STORAGE_KEY = "jkrb_data";
 
   function fetchLiveBase() {
-    return fetch("assets/js/data.json", { cache: "no-store" })
+    return fetch("get-data.php", { cache: "no-store" })
       .then(function (r) {
-        if (!r.ok) throw new Error("data.json tidak tersedia");
+        if (!r.ok) throw new Error("get-data.php tidak tersedia");
         return r.json();
       })
       .catch(function () {

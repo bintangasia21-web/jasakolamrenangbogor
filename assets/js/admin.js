@@ -1,18 +1,15 @@
 /*
- * admin.js — Logika panel admin lokal (client-side) untuk situs statis
- * Jasa Kolam Renang Bogor.
+ * admin.js — Logika panel admin (client-side) untuk situs Jasa Kolam
+ * Renang Bogor.
  *
- * Bagian "Foto / Portofolio" sudah live: upload-photo.php + save-data.php
- * menyimpan langsung ke assets/js/data.json di server, tampil bagi semua
- * pengunjung tanpa langkah manual.
+ * Semua bagian (Info Bisnis, Area, FAQ, Foto/Portofolio) sudah live:
+ * tombol "Simpan..." di tiap tab menulis langsung ke database MySQL
+ * lewat save-data.php, dan get-data.php membacanya kembali untuk semua
+ * pengunjung — tidak perlu unduh/upload data.js manual lagi.
  *
- * Bagian lain (Info Bisnis, Area, FAQ) masih memakai localStorage browser
- * (kunci "jkrb_data") sebagai pratinjau lokal:
- *  - Pratinjau langsung terlihat di panel admin & di index.html/area
- *    HANYA pada browser yang sama.
- *  - Untuk membuat perubahan tampil bagi SEMUA pengunjung situs, admin
- *    WAJIB menekan "Unduh data.js" lalu meng-upload file hasil unduhan
- *    ke hosting, menimpa assets/js/data.js yang lama.
+ * localStorage ("jkrb_data") tetap dipakai sebagai lapisan pratinjau
+ * cepat di browser admin (supaya iframe pratinjau langsung ter-update
+ * sebelum sempat tersimpan ke server), bukan sumber kebenaran utama.
  */
 (function () {
   "use strict";
@@ -22,9 +19,9 @@
   function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
   function fetchLiveBase() {
-    return fetch("assets/js/data.json", { cache: "no-store" })
+    return fetch("get-data.php", { cache: "no-store" })
       .then(function (r) {
-        if (!r.ok) throw new Error("data.json tidak tersedia");
+        if (!r.ok) throw new Error("get-data.php tidak tersedia");
         return r.json();
       })
       .catch(function () {
@@ -108,6 +105,7 @@
         if (input) state.business[f] = input.value;
       });
       persist();
+      syncSectionLive("business", state.business);
     });
     document.getElementById("btn-build-map").addEventListener("click", function () {
       var q = form.querySelector("[name='mapsQuery']").value.trim();
@@ -239,7 +237,10 @@
       state.areas.push({ name: "Area Baru", link: "index.html#kontak", desc: "Deskripsi area layanan.", lat: null, lng: null, priority: true });
       renderAreas();
     });
-    document.getElementById("btn-save-areas").addEventListener("click", persist);
+    document.getElementById("btn-save-areas").addEventListener("click", function () {
+      persist();
+      syncSectionLive("areas", state.areas);
+    });
   }
 
   /* ---------- FAQ ---------- */
@@ -272,7 +273,10 @@
       state.faq.push({ q: "Pertanyaan baru?", a: "Jawaban untuk pertanyaan baru." });
       renderFaq();
     });
-    document.getElementById("btn-save-faq").addEventListener("click", persist);
+    document.getElementById("btn-save-faq").addEventListener("click", function () {
+      persist();
+      syncSectionLive("faq", state.faq);
+    });
   }
 
   /* ---------- Portfolio / Foto ---------- */
@@ -329,7 +333,7 @@
             card.querySelector("[data-field='image']").value = data.url;
             updateThumb(card, state.portfolio[idx]);
             status.textContent = "Foto tersimpan. Mempublikasikan ke situs live...";
-            return syncPortfolioLive().then(function () {
+            return syncSectionLive("portfolio", state.portfolio).then(function () {
               status.textContent = "Foto tersimpan & sudah live di situs.";
             });
           })
@@ -341,20 +345,20 @@
       card.querySelector("[data-remove]").addEventListener("click", function () {
         state.portfolio.splice(idx, 1);
         renderPortfolio();
-        syncPortfolioLive();
+        syncSectionLive("portfolio", state.portfolio);
       });
       mount.appendChild(card);
     });
   }
 
-  function syncPortfolioLive() {
+  function syncSectionLive(section, payload) {
     var fd = new FormData();
-    fd.append("section", "portfolio");
-    fd.append("payload", JSON.stringify(state.portfolio));
+    fd.append("section", section);
+    fd.append("payload", JSON.stringify(payload));
     return fetch("save-data.php", { method: "POST", body: fd })
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        toast(data.message || (data.success ? "Portofolio live diperbarui." : "Gagal memperbarui portofolio live."));
+        toast(data.message || (data.success ? "Perubahan live diperbarui." : "Gagal memperbarui data live."));
         refreshPreview();
         return data;
       })
@@ -377,7 +381,7 @@
     });
     document.getElementById("btn-save-portfolio").addEventListener("click", function () {
       persist();
-      syncPortfolioLive();
+      syncSectionLive("portfolio", state.portfolio);
     });
   }
 

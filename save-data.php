@@ -1,15 +1,14 @@
 <?php
 /**
- * Endpoint untuk menyimpan perubahan konten secara langsung live ke
- * assets/js/data.json (dibaca oleh main.js saat runtime). Saat ini
- * dipakai oleh panel admin khusus untuk bagian "portfolio" (foto),
- * supaya foto yang diunggah langsung tampil bagi semua pengunjung
- * tanpa perlu unduh/upload data.js manual.
- *
- * assets/js/data.json TIDAK dilacak Git (lihat .gitignore) supaya
- * perubahan lewat endpoint ini tidak tertimpa saat deploy berikutnya.
+ * Endpoint untuk menyimpan perubahan konten (info bisnis, area, FAQ,
+ * portofolio) langsung ke database MySQL. Dilindungi Basic Auth lewat
+ * .htaccess. Setiap section dikirim sebagai payload JSON lengkap
+ * (menggantikan seluruh isi section tsb di database — pola yang sama
+ * dengan versi file JSON sebelumnya, supaya kode admin.js tidak perlu
+ * berubah banyak).
  */
 header('Content-Type: application/json; charset=utf-8');
+require_once __DIR__ . '/inc/db.php';
 
 function respond($success, $message) {
     echo json_encode(['success' => $success, 'message' => $message]);
@@ -21,8 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(false, 'Metode tidak diizinkan.');
 }
 
-$allowedSections = ['portfolio'];
-
+$allowedSections = ['business', 'areas', 'faq', 'portfolio'];
 $section = $_POST['section'] ?? '';
 $payloadRaw = $_POST['payload'] ?? '';
 
@@ -31,50 +29,90 @@ if (!in_array($section, $allowedSections, true)) {
 }
 
 $payload = json_decode($payloadRaw, true);
-if (json_last_error() !== JSON_ERROR_NONE || !is_array($payload)) {
+if (json_last_error() !== JSON_ERROR_NONE) {
     respond(false, 'Data yang dikirim tidak valid.');
 }
 
 // Cegah base64/data URI raksasa nyasar ke kolom URL gambar (harus pakai
 // upload-photo.php, yang menghasilkan path file biasa, bukan data: URI).
 if ($section === 'portfolio') {
+    if (!is_array($payload)) respond(false, 'Data portofolio tidak valid.');
     foreach ($payload as $item) {
         if (isset($item['image']) && is_string($item['image']) && strlen($item['image']) > 500) {
             respond(false, 'Salah satu URL gambar terlalu panjang (kemungkinan base64). Gunakan tombol unggah foto, bukan tempel teks ke kolom URL.');
         }
     }
 }
-
-$dataFile = __DIR__ . '/assets/js/data.json';
-$defaultFile = __DIR__ . '/assets/js/data.default.json';
-
-// data.json sengaja tidak dilacak Git (lihat .gitignore) supaya bisa ditulis
-// bebas oleh endpoint ini. Kalau proses deploy pernah menghapusnya, ATAU
-// isinya rusak/bukan JSON valid (mis. tertimpa file lain secara tidak
-// sengaja), pulihkan otomatis dari data.default.json (file baca-saja yang
-// selalu ikut ter-deploy) sebelum menerapkan perubahan yang diminta.
-$current = null;
-if (file_exists($dataFile) && is_readable($dataFile)) {
-    $current = json_decode(file_get_contents($dataFile), true);
+if (in_array($section, ['areas', 'faq'], true) && !is_array($payload)) {
+    respond(false, 'Data tidak valid.');
 }
-if (!is_array($current)) {
-    if (!file_exists($defaultFile) || !is_readable($defaultFile)) {
-        respond(false, 'data.json rusak dan data.default.json tidak ada/tidak bisa dibaca. Hubungi pengembang.');
+if ($section === 'business' && !is_array($payload)) {
+    respond(false, 'Data bisnis tidak valid.');
+}
+
+try {
+    $pdo = get_db();
+    $pdo->beginTransaction();
+
+    if ($section === 'business') {
+        $fields = ['name', 'legalName', 'tagline', 'description', 'phoneDisplay', 'phoneHref',
+            'whatsapp', 'whatsappMessage', 'email', 'addressLine', 'city', 'region', 'postalCode',
+            'country', 'hoursWeekday', 'hoursWeekend', 'mapsQuery', 'mapsUrl', 'priceRange',
+            'yearsExperience', 'projectsDone', 'domain'];
+        $cols = implode(',', array_map(function ($f) { return "`$f`"; }, $fields));
+        $vals = implode(',', array_map(function ($f) { return ":$f"; }, $fields));
+        $updates = implode(',', array_map(function ($f) { return "`$f` = VALUES(`$f`)"; }, $fields));
+        $stmt = $pdo->prepare("INSERT INTO business (id, $cols) VALUES (1, $vals) ON DUPLICATE KEY UPDATE $updates");
+        $params = [];
+        foreach ($fields as $f) {
+            $params[":$f"] = $payload[$f] ?? '';
+        }
+        $stmt->execute($params);
+    } elseif ($section === 'areas') {
+        $pdo->exec('DELETE FROM areas');
+        $stmt = $pdo->prepare('INSERT INTO areas (name, link, description, lat, lng, priority, sort_order) VALUES (:name, :link, :description, :lat, :lng, :priority, :sort_order)');
+        $order = 0;
+        foreach ($payload as $item) {
+            $stmt->execute([
+                ':name' => $item['name'] ?? '',
+                ':link' => $item['link'] ?? '',
+                ':description' => $item['desc'] ?? '',
+                ':lat' => (isset($item['lat']) && $item['lat'] !== null && $item['lat'] !== '') ? $item['lat'] : null,
+                ':lng' => (isset($item['lng']) && $item['lng'] !== null && $item['lng'] !== '') ? $item['lng'] : null,
+                ':priority' => !empty($item['priority']) ? 1 : 0,
+                ':sort_order' => $order++
+            ]);
+        }
+    } elseif ($section === 'faq') {
+        $pdo->exec('DELETE FROM faq');
+        $stmt = $pdo->prepare('INSERT INTO faq (question, answer, sort_order) VALUES (:q, :a, :sort_order)');
+        $order = 0;
+        foreach ($payload as $item) {
+            $stmt->execute([':q' => $item['q'] ?? '', ':a' => $item['a'] ?? '', ':sort_order' => $order++]);
+        }
+    } elseif ($section === 'portfolio') {
+        $pdo->exec('DELETE FROM portfolio');
+        $stmt = $pdo->prepare('INSERT INTO portfolio (title, area, description, image, color1, color2, sort_order) VALUES (:title, :area, :description, :image, :color1, :color2, :sort_order)');
+        $order = 0;
+        foreach ($payload as $item) {
+            $stmt->execute([
+                ':title' => $item['title'] ?? '',
+                ':area' => $item['area'] ?? '',
+                ':description' => $item['desc'] ?? '',
+                ':image' => $item['image'] ?? null,
+                ':color1' => $item['color1'] ?? null,
+                ':color2' => $item['color2'] ?? null,
+                ':sort_order' => $order++
+            ]);
+        }
     }
-    $current = json_decode(file_get_contents($defaultFile), true);
-    if (!is_array($current)) {
-        respond(false, 'data.default.json juga rusak/tidak valid. Hubungi pengembang.');
+
+    $pdo->commit();
+} catch (Exception $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
     }
-}
-if (file_exists($dataFile) && !is_writable($dataFile)) {
-    respond(false, 'data.json tidak bisa ditulis. Cek izin file di server.');
-}
-
-$current[$section] = $payload;
-
-$json = json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-if ($json === false || file_put_contents($dataFile, $json, LOCK_EX) === false) {
-    respond(false, 'Gagal menyimpan data ke server.');
+    respond(false, 'Gagal menyimpan ke database: ' . $e->getMessage());
 }
 
 respond(true, 'Perubahan berhasil disimpan dan langsung tampil di situs.');

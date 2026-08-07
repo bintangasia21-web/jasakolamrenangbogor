@@ -32,7 +32,7 @@
 
   <main class="admin-main">
     <div class="admin-notice">
-      <strong>Catatan:</strong> Tab <em>"Foto / Portofolio"</em> sudah live — perubahan langsung tersimpan di server dan tampil bagi semua pengunjung. Tab lain (Info Bisnis, Area Layanan, FAQ) masih berupa editor pratinjau lokal (localStorage browser ini) — untuk menerapkannya ke semua pengunjung, buka tab <em>"Ekspor / Impor Data"</em>, unduh <code>data.js</code>, lalu upload file tersebut ke hosting untuk menimpa <code>assets/js/data.js</code>. Halaman ini sudah dilindungi HTTP Basic Auth (login browser) — kelola password login lewat tab <em>"Keamanan"</em>.
+      <strong>Catatan:</strong> Semua tab (Info Bisnis, Area Layanan, FAQ, Foto/Portofolio) sudah live — begitu Anda menekan tombol "Simpan..." di tiap tab, perubahan langsung tersimpan ke database dan tampil bagi semua pengunjung situs, tanpa perlu unduh/upload file apa pun. Tab <em>"Ekspor / Impor Data"</em> kini hanya untuk cadangan/backup opsional. Halaman ini sudah dilindungi HTTP Basic Auth (login browser) — kelola password login lewat tab <em>"Keamanan"</em>.
     </div>
 
     <!-- Info Bisnis -->
@@ -140,11 +140,11 @@
     <!-- Ekspor / Impor -->
     <section id="panel-data" class="admin-panel">
       <h2>Ekspor / Impor Data</h2>
-      <p class="panel-desc">Situs ini statis dan tidak memiliki server database — gunakan alat berikut untuk menerapkan perubahan secara permanen atau memindahkannya ke lingkungan lain.</p>
+      <p class="panel-desc">Semua perubahan sudah live otomatis lewat tombol "Simpan..." di tiap tab (tersimpan ke database). Alat di bawah ini untuk cadangan/backup opsional saja.</p>
       <div class="admin-card">
-        <div class="admin-card-head"><h3>Terapkan ke Situs Langsung (Live)</h3></div>
-        <p style="color:var(--gray-600);font-size:.9rem">Unduh <code>data.js</code> berisi seluruh data saat ini, lalu upload melalui panel hosting/FTP Anda untuk menimpa file <code>assets/js/data.js</code>.</p>
-        <button type="button" id="btn-download-datajs" class="btn btn-primary">Unduh data.js</button>
+        <div class="admin-card-head"><h3>Unduh Cadangan (Backup)</h3></div>
+        <p style="color:var(--gray-600);font-size:.9rem">Unduh <code>data.js</code> berisi salinan data saat ini sebagai arsip/cadangan pribadi. Tidak perlu diupload ke mana pun — data live sudah otomatis tersimpan di database sejak Anda menekan tombol "Simpan...".</p>
+        <button type="button" id="btn-download-datajs" class="btn btn-primary">Unduh data.js (cadangan)</button>
       </div>
       <div class="admin-card">
         <div class="admin-card-head"><h3>JSON Mentah</h3></div>
