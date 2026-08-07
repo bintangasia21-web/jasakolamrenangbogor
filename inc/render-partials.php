@@ -68,7 +68,7 @@ function render_header_nav($business) {
       <a href="/layanan/">Layanan</a>
       <a href="/area-layanan/">Area Layanan</a>
       <a href="/portofolio/">Portofolio</a>
-      <a href="/">FAQ</a>
+      <a href="/faq/">FAQ</a>
       <a href="/">Kontak</a>
     </nav>
     <div class="nav-cta">
@@ -195,7 +195,8 @@ function render_footer($business) {
         <a href="/layanan/">Layanan</a>
         <a href="/area-layanan/">Area Layanan</a>
         <a href="/portofolio/">Portofolio</a>
-        <a href="/">FAQ &amp; Kontak</a>
+        <a href="/faq/">FAQ</a>
+        <a href="/">Kontak</a>
       </div>
       <div>
         <h4>Area Layanan</h4>
