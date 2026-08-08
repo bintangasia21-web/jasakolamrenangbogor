@@ -46,18 +46,26 @@ try {
         ];
     }, $pdo->query('SELECT * FROM portfolio ORDER BY sort_order, id')->fetchAll());
 
-    $testimonials = array_map(function ($r) {
-        return [
-            'id' => (int) $r['id'],
-            'name' => $r['name'],
-            'area' => $r['area'],
-            'service' => $r['service'],
-            'content' => $r['content'],
-            'photo' => $r['photo'],
-            'date' => $r['testimonial_date'],
-            'status' => $r['status']
-        ];
-    }, $pdo->query('SELECT * FROM testimonials ORDER BY sort_order, id')->fetchAll());
+    // Query terpisah dari try/catch utama di atas: kalau tabel testimonials
+    // belum sempat terbuat (mis. setup-schema.php belum/gagal dijalankan),
+    // endpoint ini tetap membawa business/areas/faq/portfolio dengan benar
+    // alih-alih ikut gagal total untuk seluruh panel admin.
+    try {
+        $testimonials = array_map(function ($r) {
+            return [
+                'id' => (int) $r['id'],
+                'name' => $r['name'],
+                'area' => $r['area'],
+                'service' => $r['service'],
+                'content' => $r['content'],
+                'photo' => $r['photo'],
+                'date' => $r['testimonial_date'],
+                'status' => $r['status']
+            ];
+        }, $pdo->query('SELECT * FROM testimonials ORDER BY sort_order, id')->fetchAll());
+    } catch (Exception $e) {
+        $testimonials = [];
+    }
 
     echo json_encode([
         'business' => $business,
