@@ -33,10 +33,19 @@ CREATE TABLE IF NOT EXISTS business (
 -- menambah kolom ke tabel yang sudah ada -- perlu ALTER terpisah.
 -- monthlyRevenue SENGAJA internal-only: hanya tersimpan & terlihat di
 -- panel admin, tidak pernah dirender ke halaman publik manapun.
-ALTER TABLE business ADD COLUMN IF NOT EXISTS yearFounded INT NULL;
-ALTER TABLE business ADD COLUMN IF NOT EXISTS activeCustomers VARCHAR(100) NOT NULL DEFAULT '';
-ALTER TABLE business ADD COLUMN IF NOT EXISTS employeeCount INT NULL;
-ALTER TABLE business ADD COLUMN IF NOT EXISTS monthlyRevenue VARCHAR(100) NULL;
+-- CATATAN: sengaja TANPA "IF NOT EXISTS" pada ADD COLUMN -- klausa itu
+-- baru didukung MySQL 8.0.29+, dan versi MySQL/MariaDB di hosting ini
+-- lebih lama sehingga menyebabkan seluruh statement gagal (dibuktikan
+-- lewat setup-schema.php: CREATE TABLE IF NOT EXISTS berhasil, tapi
+-- keempat ADD COLUMN IF NOT EXISTS ini gagal). setup-schema.php sudah
+-- menjalankan tiap statement dengan try/catch sendiri-sendiri, jadi
+-- aman dijalankan ulang -- kalau kolom sudah ada, statement ini akan
+-- gagal dengan "Duplicate column name" (masuk ke daftar "failed") tanpa
+-- mengganggu statement lain.
+ALTER TABLE business ADD COLUMN yearFounded INT NULL;
+ALTER TABLE business ADD COLUMN activeCustomers VARCHAR(100) NOT NULL DEFAULT '';
+ALTER TABLE business ADD COLUMN employeeCount INT NULL;
+ALTER TABLE business ADD COLUMN monthlyRevenue VARCHAR(100) NULL;
 
 CREATE TABLE IF NOT EXISTS areas (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
