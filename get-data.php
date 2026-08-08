@@ -46,11 +46,25 @@ try {
         ];
     }, $pdo->query('SELECT * FROM portfolio ORDER BY sort_order, id')->fetchAll());
 
+    $testimonials = array_map(function ($r) {
+        return [
+            'id' => (int) $r['id'],
+            'name' => $r['name'],
+            'area' => $r['area'],
+            'service' => $r['service'],
+            'content' => $r['content'],
+            'photo' => $r['photo'],
+            'date' => $r['testimonial_date'],
+            'status' => $r['status']
+        ];
+    }, $pdo->query('SELECT * FROM testimonials ORDER BY sort_order, id')->fetchAll());
+
     echo json_encode([
         'business' => $business,
         'areas' => $areas,
         'faq' => $faq,
-        'portfolio' => $portfolio
+        'portfolio' => $portfolio,
+        'testimonials' => $testimonials
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 } catch (Exception $e) {
     http_response_code(500);

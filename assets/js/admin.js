@@ -38,7 +38,8 @@
           business: Object.assign({}, base.business, override.business || {}),
           areas: override.areas || base.areas,
           faq: override.faq || base.faq,
-          portfolio: override.portfolio || base.portfolio
+          portfolio: override.portfolio || base.portfolio,
+          testimonials: override.testimonials || base.testimonials || []
         };
       }
     } catch (e) { /* ignore corrupt storage */ }
@@ -85,7 +86,8 @@
     "name", "tagline", "description", "phoneDisplay", "phoneHref", "whatsapp",
     "whatsappMessage", "email", "addressLine", "city", "region", "postalCode",
     "hoursWeekday", "hoursWeekend", "mapsQuery", "priceRange", "yearsExperience",
-    "projectsDone", "domain"
+    "projectsDone", "domain",
+    "yearFounded", "activeCustomers", "employeeCount", "monthlyRevenue"
   ];
 
   function renderBusinessForm() {
@@ -385,6 +387,90 @@
     });
   }
 
+  /* ---------- Testimonial ---------- */
+  function renderTestimonials() {
+    var mount = document.getElementById("testimonial-list-admin");
+    mount.innerHTML = "";
+    state.testimonials.forEach(function (item, idx) {
+      var card = document.createElement("div");
+      card.className = "admin-card";
+      var thumbHtml = item.photo
+        ? '<img src="' + item.photo + '" alt="">'
+        : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--blue-600);font-weight:700;background:linear-gradient(135deg,#1478c8,#00b8d9)">Tanpa Foto</div>';
+      card.innerHTML =
+        '<div class="admin-card-head"><h3>Testimonial #' + (idx + 1) + '</h3>' +
+        '<button type="button" class="btn btn-sm btn-danger" data-remove="' + idx + '">Hapus</button></div>' +
+        '<div class="thumb-preview" data-thumb>' + thumbHtml + "</div>" +
+        '<div class="form-grid">' +
+        field("Nama Pelanggan", "text", "name", item.name) +
+        field("Area", "text", "area", item.area) +
+        "</div>" +
+        '<div class="form-grid">' +
+        field("Layanan", "text", "service", item.service) +
+        field("Tanggal (opsional)", "date", "date", item.date) +
+        "</div>" +
+        field("Isi Testimoni", "textarea", "content", item.content) +
+        '<div class="field"><label>Status</label><select data-field="status">' +
+        '<option value="draft"' + (item.status !== "published" ? " selected" : "") + '>Draft</option>' +
+        '<option value="published"' + (item.status === "published" ? " selected" : "") + '>Diterbitkan (Live)</option>' +
+        "</select></div>" +
+        '<div class="field"><label>Atau unggah foto pelanggan (opsional, langsung live)</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-upload="' + idx + '"><small data-upload-status>Foto opsional — testimoni tetap bisa diterbitkan tanpa foto.</small></div>';
+
+      card.querySelectorAll("[data-field]").forEach(function (inp) {
+        inp.addEventListener("input", function () {
+          state.testimonials[idx][inp.dataset.field] = inp.value;
+        });
+        inp.addEventListener("change", function () {
+          state.testimonials[idx][inp.dataset.field] = inp.value;
+        });
+      });
+      card.querySelector("[data-upload]").addEventListener("change", function (e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var status = card.querySelector("[data-upload-status]");
+        var fd = new FormData();
+        fd.append("photo", file);
+        status.textContent = "Mengunggah...";
+        fetch("upload-photo.php", { method: "POST", body: fd })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.success) {
+              status.textContent = data.message || "Upload gagal.";
+              toast(data.message || "Upload gagal.");
+              return;
+            }
+            state.testimonials[idx].photo = data.url;
+            card.querySelector("[data-thumb]").innerHTML = '<img src="' + data.url + '" alt="">';
+            status.textContent = "Foto tersimpan. Mempublikasikan ke situs live...";
+            return syncSectionLive("testimonials", state.testimonials).then(function () {
+              status.textContent = "Foto tersimpan & sudah live di situs.";
+            });
+          })
+          .catch(function () {
+            status.textContent = "Gagal menghubungi server saat upload.";
+            toast("Gagal menghubungi server saat upload.");
+          });
+      });
+      card.querySelector("[data-remove]").addEventListener("click", function () {
+        state.testimonials.splice(idx, 1);
+        renderTestimonials();
+        syncSectionLive("testimonials", state.testimonials);
+      });
+      mount.appendChild(card);
+    });
+  }
+
+  function bindTestimonialButtons() {
+    document.getElementById("btn-add-testimonial").addEventListener("click", function () {
+      state.testimonials.push({ name: "", area: "", service: "", content: "", photo: null, date: "", status: "draft" });
+      renderTestimonials();
+    });
+    document.getElementById("btn-save-testimonial").addEventListener("click", function () {
+      persist();
+      syncSectionLive("testimonials", state.testimonials);
+    });
+  }
+
   /* ---------- Export / Import ---------- */
   function download(filename, text) {
     var blob = new Blob([text], { type: "text/plain;charset=utf-8" });
@@ -437,6 +523,7 @@
     renderAreas();
     renderFaq();
     renderPortfolio();
+    renderTestimonials();
   }
 
   /* ---------- Keamanan (ganti password) ---------- */
@@ -726,6 +813,7 @@
     bindAreaButtons();
     bindFaqButtons();
     bindPortfolioButtons();
+    bindTestimonialButtons();
     bindExportImport();
     bindPasswordForm();
     bindPagesUI();

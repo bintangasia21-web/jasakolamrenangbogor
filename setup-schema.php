@@ -25,16 +25,31 @@ $statements = array_filter(array_map('trim', explode(';', $sql)));
 
 try {
     $pdo = get_db();
-    $executed = [];
-    foreach ($statements as $stmt) {
-        if ($stmt === '') continue;
-        $pdo->exec($stmt);
-        preg_match('/CREATE TABLE[^`]*`?(\w+)`?/i', $stmt, $m);
-        $executed[] = $m[1] ?? substr($stmt, 0, 30);
-    }
-
-    $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
-    respond(true, 'Skema berhasil dijalankan.', ['tables_now' => $tables]);
 } catch (Exception $e) {
-    respond(false, 'Gagal menjalankan skema: ' . $e->getMessage());
+    respond(false, 'Gagal konek database: ' . $e->getMessage());
 }
+
+// Tiap statement dieksekusi & ditangkap errornya SENDIRI-SENDIRI (bukan
+// satu try/catch besar) — supaya kalau satu ALTER/CREATE gagal (mis.
+// kolom sudah ada di MySQL versi lama yang tidak dukung "IF NOT EXISTS"),
+// statement lain di bawahnya tetap lanjut jalan, bukan berhenti total.
+$ok = [];
+$failed = [];
+foreach ($statements as $stmt) {
+    if ($stmt === '') continue;
+    preg_match('/^(CREATE TABLE|ALTER TABLE)[^`\w]*`?(\w+)`?/i', $stmt, $m);
+    $label = isset($m[2]) ? $m[1] . ' ' . $m[2] : substr($stmt, 0, 40);
+    try {
+        $pdo->exec($stmt);
+        $ok[] = $label;
+    } catch (Exception $e) {
+        $failed[] = $label . ': ' . $e->getMessage();
+    }
+}
+
+$tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
+respond(empty($failed), empty($failed) ? 'Skema berhasil dijalankan.' : 'Sebagian statement gagal, lihat "failed".', [
+    'tables_now' => $tables,
+    'ok' => $ok,
+    'failed' => $failed
+]);

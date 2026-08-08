@@ -23,6 +23,7 @@
       <button type="button" data-tab="area">Area Layanan</button>
       <button type="button" data-tab="faq">FAQ</button>
       <button type="button" data-tab="foto">Foto / Portofolio</button>
+      <button type="button" data-tab="testimonial">Testimonial</button>
       <button type="button" data-tab="halaman">Halaman SEO</button>
       <div class="divider"></div>
       <button type="button" data-tab="preview">Pratinjau Situs</button>
@@ -33,7 +34,7 @@
 
   <main class="admin-main">
     <div class="admin-notice">
-      <strong>Catatan:</strong> Semua tab (Info Bisnis, Area Layanan, FAQ, Foto/Portofolio) sudah live — begitu Anda menekan tombol "Simpan..." di tiap tab, perubahan langsung tersimpan ke database dan tampil bagi semua pengunjung situs, tanpa perlu unduh/upload file apa pun. Tab <em>"Ekspor / Impor Data"</em> kini hanya untuk cadangan/backup opsional. Halaman ini sudah dilindungi HTTP Basic Auth (login browser) — kelola password login lewat tab <em>"Keamanan"</em>.
+      <strong>Catatan:</strong> Semua tab (Info Bisnis, Area Layanan, FAQ, Foto/Portofolio, Testimonial) sudah live — begitu Anda menekan tombol "Simpan..." di tiap tab, perubahan langsung tersimpan ke database dan tampil bagi semua pengunjung situs, tanpa perlu unduh/upload file apa pun. Tab <em>"Ekspor / Impor Data"</em> kini hanya untuk cadangan/backup opsional. Halaman ini sudah dilindungi HTTP Basic Auth (login browser) — kelola password login lewat tab <em>"Keamanan"</em>.
     </div>
 
     <!-- Info Bisnis -->
@@ -83,6 +84,20 @@
           <button type="button" id="btn-build-map" class="btn btn-secondary btn-sm">Buat Peta dari Alamat</button>
         </div>
 
+        <div class="admin-card">
+          <div class="admin-card-head"><h3>Fakta Bisnis</h3></div>
+          <p class="panel-desc" style="margin-top:-6px">Data ini dipakai untuk bagian "Fakta Bisnis" di beranda. Gunakan angka/teks yang benar-benar sesuai kondisi bisnis — jangan mengarang.</p>
+          <div class="form-grid">
+            <div class="field"><label>Tahun Berdiri</label><input type="number" name="yearFounded" placeholder="2015"></div>
+            <div class="field"><label>Jumlah Pelanggan Aktif (teks)</label><input type="text" name="activeCustomers" placeholder="Ratusan pelanggan"></div>
+            <div class="field"><label>Jumlah Karyawan</label><input type="number" name="employeeCount" placeholder="10"></div>
+            <div class="field">
+              <label>Omzet Bulanan <span style="color:#c0392b;font-weight:600">(Internal — tidak tampil ke publik)</span></label>
+              <input type="text" name="monthlyRevenue" placeholder="Rp50 juta+">
+            </div>
+          </div>
+        </div>
+
         <div class="toolbar">
           <button type="submit" class="btn btn-primary">Simpan Info Bisnis</button>
         </div>
@@ -127,6 +142,17 @@
         <button type="button" id="btn-save-portfolio" class="btn btn-primary">Simpan Portofolio</button>
       </div>
       <div id="portfolio-list-admin"></div>
+    </section>
+
+    <!-- Testimonial -->
+    <section id="panel-testimonial" class="admin-panel">
+      <h2>Testimonial</h2>
+      <p class="panel-desc">Kelola testimoni pelanggan asli yang tampil di beranda. Hanya testimoni berstatus "Diterbitkan" yang tampil ke publik — gunakan "Draft" untuk menyimpan dulu tanpa menampilkannya. Jangan mengisi testimoni rekaan.</p>
+      <div class="toolbar">
+        <button type="button" id="btn-add-testimonial" class="btn btn-secondary">+ Tambah Testimonial</button>
+        <button type="button" id="btn-save-testimonial" class="btn btn-primary">Simpan Testimonial</button>
+      </div>
+      <div id="testimonial-list-admin"></div>
     </section>
 
     <!-- Halaman SEO -->

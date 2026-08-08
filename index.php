@@ -26,6 +26,21 @@ try {
     exit('Terjadi kesalahan server.');
 }
 
+// Layanan dinamis & testimoni dibungkus try/catch TERPISAH dari blok di atas:
+// kalau setup-schema.php belum sempat dijalankan ulang (tabel/kolom baru
+// belum ada), beranda tetap tampil normal (fallback ke array kosong) alih-
+// alih ikut menampilkan error 500 total untuk seluruh halaman.
+try {
+    $services = $pdo->query("SELECT * FROM pages WHERE type = 'service' AND status = 'published' ORDER BY sort_order, title")->fetchAll();
+} catch (Exception $e) {
+    $services = [];
+}
+try {
+    $testimonials = $pdo->query("SELECT * FROM testimonials WHERE status = 'published' ORDER BY sort_order, id")->fetchAll();
+} catch (Exception $e) {
+    $testimonials = [];
+}
+
 $areas = array_map(function ($r) {
     return [
         'name' => $r['name'],
@@ -38,6 +53,31 @@ $areas = array_map(function ($r) {
 }, $areasRaw);
 
 $waHref = 'https://wa.me/' . $business['whatsapp'];
+
+// Daftar masalah kolam renang yang paling sering dikeluhkan pelanggan,
+// tiap item ditautkan ke halaman layanan terkait yang sudah live (dicek
+// manual agar tidak ada tautan mati).
+$masalahList = [
+    ['title' => 'Kolam Bocor / Rembes', 'desc' => 'Air kolam terus berkurang meski tidak digunakan — tanda kebocoran struktur atau pipa yang perlu segera diperiksa.', 'link' => '/layanan/perbaikan-kebocoran-kolam/'],
+    ['title' => 'Air Kolam Keruh & Tidak Jernih', 'desc' => 'Kualitas air menurun akibat kadar kimia tidak seimbang, membuat kolam terlihat kusam dan kurang nyaman dipakai.', 'link' => '/layanan/penyeimbangan-kimia-air-kolam/'],
+    ['title' => 'Keramik Kolam Pecah / Lepas', 'desc' => 'Keramik retak atau terlepas dari dinding maupun dasar kolam, mengganggu tampilan sekaligus berisiko melukai pengguna.', 'link' => '/layanan/penggantian-keramik-kolam/'],
+    ['title' => 'Filter & Pompa Tidak Optimal', 'desc' => 'Pompa melemah atau filter kotor membuat sirkulasi air tidak maksimal dan air lebih cepat kotor kembali.', 'link' => '/layanan/instalasi-filter-pompa/'],
+    ['title' => 'Pasir Filter Sudah Lama Tidak Diganti', 'desc' => 'Pasir filter yang jenuh menurunkan efektivitas penyaringan, meski pompa masih menyala normal.', 'link' => '/layanan/penggantian-pasir-filter/'],
+    ['title' => 'Sirkulasi Air Tidak Lancar', 'desc' => 'Aliran air terasa lemah di beberapa titik kolam — tanda ada masalah pada sistem pipa atau katup sirkulasi.', 'link' => '/layanan/perbaikan-sistem-sirkulasi-air/'],
+    ['title' => 'Dasar Kolam Kotor & Berlumut', 'desc' => 'Endapan kotoran dan lumut menumpuk di dasar kolam sehingga permukaan menjadi licin dan tidak higienis.', 'link' => '/layanan/vacuum-pembersihan-dasar-kolam/'],
+    ['title' => 'Lampu Kolam Mati / Redup', 'desc' => 'Pencahayaan kolam bermasalah membuat kolam kurang aman dan kurang nyaman digunakan pada malam hari.', 'link' => '/layanan/perbaikan-lampu-kolam-renang/'],
+    ['title' => 'Rembesan pada Struktur Kolam', 'desc' => 'Lapisan waterproofing yang sudah menurun menyebabkan rembesan pada dinding atau area sekitar kolam.', 'link' => '/layanan/waterproofing-kolam-renang/'],
+    ['title' => 'Kolam Cepat Kotor Saat Musim Hujan', 'desc' => 'Air hujan membawa kotoran dan menurunkan kualitas air kolam secara drastis dalam waktu singkat.', 'link' => '/layanan/perawatan-kolam-musim-hujan/']
+];
+
+$jenisPelangganList = [
+    ['title' => 'Rumah Tinggal', 'desc' => 'Kolam renang pribadi untuk kenyamanan keluarga sehari-hari.'],
+    ['title' => 'Villa', 'desc' => 'Kolam renang villa yang tampil menarik dan terawat sepanjang waktu.'],
+    ['title' => 'Hotel', 'desc' => 'Fasilitas kolam renang hotel dengan standar kebersihan dan keamanan tamu.'],
+    ['title' => 'Penginapan', 'desc' => 'Kolam renang penginapan/guest house yang perlu perawatan rutin terjadwal.'],
+    ['title' => 'Sekolah', 'desc' => 'Kolam renang fasilitas pendidikan yang aman untuk aktivitas siswa.'],
+    ['title' => 'Fasilitas Komersial', 'desc' => 'Kolam renang gedung komersial, klub, atau fasilitas umum lainnya.']
+];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -71,14 +111,14 @@ $waHref = 'https://wa.me/' . $business['whatsapp'];
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
         Terpercaya di Bogor & Sekitarnya
       </span>
-      <h1>Wujudkan Kolam Renang Impian Anda di Bogor</h1>
+      <h1>Jasa Kolam Renang Bogor untuk Pembangunan, Renovasi & Perawatan</h1>
       <p class="lead">Kami melayani pembuatan kolam renang baru, perawatan rutin, renovasi & perbaikan, hingga instalasi sistem air — untuk rumah tinggal, villa, dan resort di Sentul, Puncak, Ciawi, Bogor Kota, Cibinong, Yasmin, dan area Bogor lainnya.</p>
       <div class="hero-actions">
         <a href="<?= h($waHref) ?>" class="btn btn-white">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 20Zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1s-.6.8-.7.9-.3.1-.5 0a6.6 6.6 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.4l.4-.4.2-.4v-.3c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.4a.9.9 0 0 0-.6.3 2.7 2.7 0 0 0-.8 2 4.7 4.7 0 0 0 1 2.5 10.8 10.8 0 0 0 4.1 3.6c.6.2 1 .4 1.4.5a3.3 3.3 0 0 0 1.5.1 2.5 2.5 0 0 0 1.6-1.1 1.9 1.9 0 0 0 .1-1.1c-.1-.1-.2-.2-.4-.3Z"/></svg>
-          Konsultasi Gratis via WhatsApp
+          Konsultasi Sekarang
         </a>
-        <a href="/layanan/" class="btn btn-outline">Lihat Layanan Kami</a>
+        <a href="#proyek" class="btn btn-outline">Lihat Proyek</a>
       </div>
       <div class="hero-stats">
         <div><strong><?= (int) $business['yearsExperience'] ?>+</strong><span>Tahun Pengalaman</span></div>
@@ -100,55 +140,36 @@ $waHref = 'https://wa.me/' . $business['whatsapp'];
   </div>
 </section>
 
-<section id="layanan">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow">Layanan Kami</span>
-      <h2>Solusi Lengkap Kolam Renang Anda</h2>
-      <p>Dari kolam baru hingga perawatan berkelanjutan, tim kami menangani setiap tahap dengan standar kerja rapi dan bahan berkualitas.</p>
-    </div>
-    <div class="services-grid">
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg>
-        </div>
-        <h3><a href="/layanan/pembuatan-kolam-renang-baru/" style="color:inherit">Pembuatan Kolam Baru</a></h3>
-        <p>Desain dan konstruksi kolam renang dari nol sesuai lahan dan kebutuhan Anda, mulai dari kolam minimalis rumah tinggal hingga kolam villa berukuran besar. <a href="/layanan/pembuatan-kolam-renang-baru/" style="color:var(--blue-600);font-weight:600">Selengkapnya &rarr;</a></p>
-      </div>
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m4.9 4.9 2.8 2.8"/><path d="M2 12h4"/><path d="M12 22c-3 0-5-2-5-4.5S9 12 12 8c3 4 5 6.5 5 9.5S15 22 12 22Z"/></svg>
-        </div>
-        <h3><a href="/layanan/perawatan-pembersihan-rutin/" style="color:inherit">Perawatan Rutin</a></h3>
-        <p>Program perawatan berkala — pembersihan, pengecekan kualitas air, dan perawatan sistem filtrasi — agar kolam selalu jernih dan siap pakai kapan saja. <a href="/layanan/perawatan-pembersihan-rutin/" style="color:var(--blue-600);font-weight:600">Selengkapnya &rarr;</a></p>
-      </div>
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 2.5 7 7-9 9-7-1-1-7 9-9Z"/><path d="m14.5 2.5 7 7"/><path d="M3 21l3-1"/></svg>
-        </div>
-        <h3><a href="/layanan/renovasi-perbaikan-kolam/" style="color:inherit">Renovasi & Perbaikan</a></h3>
-        <p>Perbaikan kebocoran, keramik pecah, waterproofing, hingga renovasi total kolam lama agar tampil dan berfungsi seperti baru kembali. <a href="/layanan/renovasi-perbaikan-kolam/" style="color:var(--blue-600);font-weight:600">Selengkapnya &rarr;</a></p>
-      </div>
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
-        </div>
-        <h3><a href="/layanan/instalasi-filter-pompa/" style="color:inherit">Instalasi Sistem Air</a></h3>
-        <p>Pemasangan pompa sirkulasi, filter, sistem sanitasi, dan plumbing kolam renang agar air tetap bersih dan perawatan lebih efisien. <a href="/layanan/instalasi-filter-pompa/" style="color:var(--blue-600);font-weight:600">Selengkapnya &rarr;</a></p>
-      </div>
-    </div>
-    <div class="text-center mt-32">
-      <a href="/layanan/" class="btn btn-outline" style="border-color:var(--blue-600);color:var(--blue-600)">Lihat Semua Layanan Kami &rarr;</a>
-    </div>
+<?php
+$trustItems = [];
+if (!empty($business['yearFounded'])) {
+    $trustItems[] = ['value' => 'Sejak ' . (int) $business['yearFounded'], 'label' => 'Tahun Berdiri'];
+}
+if (!empty($business['activeCustomers'])) {
+    $trustItems[] = ['value' => $business['activeCustomers'], 'label' => 'Pelanggan Aktif'];
+}
+if (!empty($business['employeeCount'])) {
+    $trustItems[] = ['value' => '±' . (int) $business['employeeCount'], 'label' => 'Tim Profesional'];
+}
+$trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wilayah Layanan'];
+?>
+<section class="trust-bar">
+  <div class="container trust-bar-inner">
+    <?php foreach ($trustItems as $t): ?>
+    <div class="trust-bar-item"><strong><?= h($t['value']) ?></strong><span><?= h($t['label']) ?></span></div>
+    <?php endforeach; ?>
   </div>
 </section>
 
-<section id="kenapa-kami" class="section-alt">
+<section id="tentang">
   <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Tentang Kami</span>
+      <h2>Tentang Jasa Kolam Renang Bogor</h2>
+      <p>Dipercaya pemilik rumah, villa, dan resort di Bogor untuk pembangunan, renovasi, dan perawatan kolam renang.</p>
+    </div>
     <div class="two-col">
       <div>
-        <span class="eyebrow">Kenapa Kami</span>
-        <h2>Dipercaya Pemilik Rumah, Villa & Resort di Bogor</h2>
         <p style="color:var(--gray-600)">Kami memahami karakteristik cuaca dan kondisi tanah Bogor yang beragam — dari dataran tinggi Puncak hingga area perkotaan padat — sehingga setiap pengerjaan disesuaikan dengan kondisi lapangan.</p>
         <div class="why-grid mt-32">
           <div class="why-item">
@@ -189,54 +210,60 @@ $waHref = 'https://wa.me/' . $business['whatsapp'];
           <span>Filtrasi Berkualitas</span>
           <span>Tim Berpengalaman</span>
         </div>
+        <h4 style="margin-top:20px">Proses Kerja Singkat</h4>
+        <div class="badge-list">
+          <span>1. Konsultasi & Survei</span>
+          <span>2. Penawaran Transparan</span>
+          <span>3. Pengerjaan Terjadwal</span>
+          <span>4. Quality Check & Garansi</span>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section id="cara-kerja">
+<section id="layanan" class="section-alt">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow">Cara Kerja</span>
-      <h2>Proses Pengerjaan yang Jelas dan Terstruktur</h2>
-      <p>Kami memastikan setiap tahap pekerjaan dikomunikasikan dengan jelas kepada Anda.</p>
+      <span class="eyebrow">Layanan Kami</span>
+      <h2>Solusi Lengkap Kolam Renang Anda</h2>
+      <p>Dari kolam baru hingga perawatan berkelanjutan, tim kami menangani setiap tahap dengan standar kerja rapi dan bahan berkualitas.</p>
     </div>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <h4>Konsultasi & Survei Lokasi</h4>
-        <p>Diskusi kebutuhan Anda dan survei langsung ke lokasi untuk memastikan kondisi lahan.</p>
+    <div class="services-grid">
+      <?php
+      // Fallback ke 4 layanan inti kalau tabel "pages" belum berisi layanan
+      // published (mis. sebelum setup-schema.php dijalankan ulang) — supaya
+      // section ini tidak pernah tampak kosong.
+      $fallbackServices = [
+          ['title' => 'Pembuatan Kolam Baru', 'url_path' => '/layanan/pembuatan-kolam-renang-baru/', 'intro' => 'Desain dan konstruksi kolam renang dari nol sesuai lahan dan kebutuhan Anda, mulai dari kolam minimalis rumah tinggal hingga kolam villa berukuran besar.'],
+          ['title' => 'Perawatan Rutin', 'url_path' => '/layanan/perawatan-pembersihan-rutin/', 'intro' => 'Program perawatan berkala — pembersihan, pengecekan kualitas air, dan perawatan sistem filtrasi — agar kolam selalu jernih dan siap pakai kapan saja.'],
+          ['title' => 'Renovasi & Perbaikan', 'url_path' => '/layanan/renovasi-perbaikan-kolam/', 'intro' => 'Perbaikan kebocoran, keramik pecah, waterproofing, hingga renovasi total kolam lama agar tampil dan berfungsi seperti baru kembali.'],
+          ['title' => 'Instalasi Sistem Air', 'url_path' => '/layanan/instalasi-filter-pompa/', 'intro' => 'Pemasangan pompa sirkulasi, filter, sistem sanitasi, dan plumbing kolam renang agar air tetap bersih dan perawatan lebih efisien.']
+      ];
+      $servicesToShow = !empty($services) ? $services : $fallbackServices;
+      foreach ($servicesToShow as $svc):
+      ?>
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg>
+        </div>
+        <h3><a href="<?= h($svc['url_path']) ?>" style="color:inherit"><?= h($svc['title']) ?></a></h3>
+        <p><?= h($svc['intro']) ?> <a href="<?= h($svc['url_path']) ?>" style="color:var(--blue-600);font-weight:600">Selengkapnya &rarr;</a></p>
       </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <h4>Penawaran & Kesepakatan</h4>
-        <p>Kami sampaikan rincian biaya, waktu pengerjaan, dan spesifikasi material secara transparan.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <h4>Pengerjaan di Lapangan</h4>
-        <p>Tim teknisi mengerjakan proyek sesuai jadwal dengan pengawasan mutu di setiap tahap.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">4</div>
-        <h4>Quality Check</h4>
-        <p>Pengecekan kualitas air, kebocoran, dan fungsi sistem sebelum serah terima.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">5</div>
-        <h4>Serah Terima & Garansi</h4>
-        <p>Kolam siap digunakan dengan masa garansi dan opsi paket perawatan lanjutan.</p>
-      </div>
+      <?php endforeach; ?>
+    </div>
+    <div class="text-center mt-32">
+      <a href="/layanan/" class="btn btn-outline" style="border-color:var(--blue-600);color:var(--blue-600)">Lihat Semua Layanan Kami &rarr;</a>
     </div>
   </div>
 </section>
 
-<section id="area" class="section-alt">
+<section id="area">
   <div class="container">
     <div class="section-head">
       <span class="eyebrow">Area Layanan</span>
-      <h2>Melayani Wilayah Bogor dan Sekitarnya</h2>
-      <p>Klik area di bawah untuk melihat layanan yang disesuaikan dengan karakteristik masing-masing wilayah. Zona berwarna hijau pada peta menandai area prioritas layanan kami.</p>
+      <h2>Melayani Kota Bogor & Kabupaten Bogor serta Sekitarnya</h2>
+      <p>Klik area di bawah untuk melihat layanan yang disesuaikan dengan karakteristik masing-masing wilayah yang benar-benar kami layani. Zona berwarna hijau pada peta menandai area prioritas layanan kami.</p>
     </div>
     <div class="area-map-wrap"><div id="area-map"></div></div>
     <div class="area-grid" id="area-grid">
@@ -251,10 +278,31 @@ $waHref = 'https://wa.me/' . $business['whatsapp'];
   </div>
 </section>
 
-<section id="portofolio">
+<section id="masalah" class="section-alt">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow">Portofolio</span>
+      <span class="eyebrow">Masalah Kolam Renang</span>
+      <h2>Masalah yang Paling Sering Kami Tangani</h2>
+      <p>Kenali masalah kolam Anda dan langsung lihat layanan yang paling sesuai untuk menanganinya.</p>
+    </div>
+    <div class="services-grid">
+      <?php foreach ($masalahList as $m): ?>
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.9 18.2a1.8 1.8 0 0 0 1.5 2.8h17.2a1.8 1.8 0 0 0 1.5-2.8L13.7 3.9a1.8 1.8 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        </div>
+        <h3><a href="<?= h($m['link']) ?>" style="color:inherit"><?= h($m['title']) ?></a></h3>
+        <p><?= h($m['desc']) ?> <a href="<?= h($m['link']) ?>" style="color:var(--blue-600);font-weight:600">Lihat Solusinya &rarr;</a></p>
+      </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
+<section id="proyek">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Proyek Nyata</span>
       <h2>Contoh Pekerjaan Kami</h2>
       <p>Gambaran jenis proyek yang telah kami kerjakan di berbagai area Bogor.</p>
     </div>
@@ -277,6 +325,44 @@ $waHref = 'https://wa.me/' . $business['whatsapp'];
       <?php endforeach; ?>
     </div>
     <p class="portfolio-note">Gambar di atas adalah ilustrasi placeholder. Foto proyek asli dapat ditambahkan melalui panel admin.</p>
+  </div>
+</section>
+
+<section id="jenis-pelanggan" class="section-alt">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Jenis Pelanggan</span>
+      <h2>Melayani Berbagai Jenis Properti</h2>
+      <p>Dari rumah tinggal hingga fasilitas komersial, kami menyesuaikan layanan dengan kebutuhan tiap jenis properti.</p>
+    </div>
+    <div class="why-grid">
+      <?php foreach ($jenisPelangganList as $jp): ?>
+      <div class="why-item">
+        <div class="why-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></div>
+        <div>
+          <h4><?= h($jp['title']) ?></h4>
+          <p><?= h($jp['desc']) ?></p>
+        </div>
+      </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
+<section id="panduan">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Panduan Kolam Renang</span>
+      <h2>Tips & Panduan Perawatan Kolam Renang</h2>
+      <p>Artikel panduan seputar perawatan, renovasi, dan perbaikan kolam renang.</p>
+    </div>
+    <div class="empty-state">
+      <h4 style="margin:0">Artikel Segera Hadir</h4>
+      <p>Kami sedang menyiapkan kumpulan panduan kolam renang yang bermanfaat. Sementara menunggu, konsultasikan pertanyaan Anda langsung lewat WhatsApp.</p>
+      <div class="hero-actions" style="justify-content:center;margin-top:18px">
+        <a href="<?= h($waHref) ?>" class="btn btn-primary">Tanya via WhatsApp</a>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -308,6 +394,45 @@ $faqLd = [
 echo '<script type="application/ld+json">' . json_encode($faqLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
 ?>
 
+<section id="testimonial">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Testimonial</span>
+      <h2>Kata Pelanggan Kami</h2>
+      <p>Pengalaman nyata pelanggan yang sudah menggunakan jasa kami.</p>
+    </div>
+    <?php if (!empty($testimonials)): ?>
+    <div class="testimonial-grid">
+      <?php foreach ($testimonials as $t): ?>
+      <div class="testimonial-card">
+        <p class="testimonial-quote"><?= h($t['content']) ?></p>
+        <div class="testimonial-person">
+          <div class="testimonial-avatar">
+            <?php if (!empty($t['photo'])): ?>
+            <img src="<?= h($t['photo']) ?>" alt="<?= h($t['name']) ?>">
+            <?php else: ?>
+            <?= h(placeholder_initials($t['name'])) ?>
+            <?php endif; ?>
+          </div>
+          <div>
+            <strong><?= h($t['name']) ?></strong>
+            <span><?= h(trim($t['area'] . ($t['service'] ? ' • ' . $t['service'] : ''), ' •')) ?></span>
+          </div>
+        </div>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <?php else: ?>
+    <div class="empty-state">
+      <h4 style="margin:0">Testimoni Segera Hadir</h4>
+      <p>Kami sedang mengumpulkan testimoni asli dari pelanggan. Nantikan cerita pengalaman mereka di sini.</p>
+    </div>
+    <?php endif; ?>
+  </div>
+</section>
+
+<?php render_cta_band('Butuh Jasa Kolam Renang di Bogor?', 'Konsultasikan kebutuhan kolam renang Anda sekarang, gratis tanpa biaya survei awal.', $business); ?>
+
 <section id="kontak">
   <div class="container">
     <div class="section-head">
@@ -334,9 +459,10 @@ echo '<script type="application/ld+json">' . json_encode($faqLd, JSON_UNESCAPED_
       <div>
         <h4>Navigasi</h4>
         <a href="/layanan/">Semua Layanan</a>
-        <button type="button" data-scroll="portofolio">Portofolio</button>
-        <button type="button" data-scroll="faq">FAQ</button>
-        <button type="button" data-scroll="kontak">Kontak</button>
+        <a href="/area-layanan/">Area Layanan</a>
+        <a href="/portofolio/">Proyek</a>
+        <a href="/faq/">FAQ</a>
+        <a href="/kontak/">Kontak</a>
       </div>
       <div>
         <h4>Area Layanan</h4>

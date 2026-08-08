@@ -28,6 +28,16 @@ CREATE TABLE IF NOT EXISTS business (
   domain VARCHAR(255) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Kolom "Fakta Bisnis" tambahan (brief 2026-08). Tabel business sudah
+-- berisi data hidup, jadi CREATE TABLE IF NOT EXISTS di atas tidak akan
+-- menambah kolom ke tabel yang sudah ada -- perlu ALTER terpisah.
+-- monthlyRevenue SENGAJA internal-only: hanya tersimpan & terlihat di
+-- panel admin, tidak pernah dirender ke halaman publik manapun.
+ALTER TABLE business ADD COLUMN IF NOT EXISTS yearFounded INT NULL;
+ALTER TABLE business ADD COLUMN IF NOT EXISTS activeCustomers VARCHAR(100) NOT NULL DEFAULT '';
+ALTER TABLE business ADD COLUMN IF NOT EXISTS employeeCount INT NULL;
+ALTER TABLE business ADD COLUMN IF NOT EXISTS monthlyRevenue VARCHAR(100) NULL;
+
 CREATE TABLE IF NOT EXISTS areas (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(191) NOT NULL,
@@ -72,6 +82,21 @@ CREATE TABLE IF NOT EXISTS photos (
 -- artikel, portofolio, halaman pendukung). url_path adalah kunci unik
 -- yang dipakai page-router.php untuk mencari halaman mana yang harus
 -- ditampilkan untuk sebuah URL.
+-- Testimoni pelanggan asli (brief 2026-08). Hanya baris status=published
+-- yang ditampilkan publik; foto opsional lewat photo.php?id=<id> (pola
+-- sama seperti portfolio.image, reuse tabel "photos" & upload-photo.php).
+CREATE TABLE IF NOT EXISTS testimonials (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(191) NOT NULL,
+  area VARCHAR(100) NOT NULL DEFAULT '',
+  service VARCHAR(191) NOT NULL DEFAULT '',
+  content TEXT NOT NULL,
+  photo VARCHAR(500) DEFAULT NULL,
+  testimonial_date DATE NULL,
+  status ENUM('draft','published') NOT NULL DEFAULT 'draft',
+  sort_order INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS pages (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   type ENUM('area','service','combo','article','portfolio','page') NOT NULL,

@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(false, 'Metode tidak diizinkan.');
 }
 
-$allowedSections = ['business', 'areas', 'faq', 'portfolio'];
+$allowedSections = ['business', 'areas', 'faq', 'portfolio', 'testimonials'];
 $section = $_POST['section'] ?? '';
 $payloadRaw = $_POST['payload'] ?? '';
 
@@ -43,7 +43,7 @@ if ($section === 'portfolio') {
         }
     }
 }
-if (in_array($section, ['areas', 'faq'], true) && !is_array($payload)) {
+if (in_array($section, ['areas', 'faq', 'testimonials'], true) && !is_array($payload)) {
     respond(false, 'Data tidak valid.');
 }
 if ($section === 'business' && !is_array($payload)) {
@@ -58,14 +58,22 @@ try {
         $fields = ['name', 'legalName', 'tagline', 'description', 'phoneDisplay', 'phoneHref',
             'whatsapp', 'whatsappMessage', 'email', 'addressLine', 'city', 'region', 'postalCode',
             'country', 'hoursWeekday', 'hoursWeekend', 'mapsQuery', 'mapsUrl', 'priceRange',
-            'yearsExperience', 'projectsDone', 'domain'];
+            'yearsExperience', 'projectsDone', 'domain',
+            'yearFounded', 'activeCustomers', 'employeeCount', 'monthlyRevenue'];
+        // yearFounded & employeeCount boleh kosong (NULL) di skema, sisanya
+        // teks bebas default string kosong.
+        $nullableFields = ['yearFounded', 'employeeCount', 'monthlyRevenue'];
         $cols = implode(',', array_map(function ($f) { return "`$f`"; }, $fields));
         $vals = implode(',', array_map(function ($f) { return ":$f"; }, $fields));
         $updates = implode(',', array_map(function ($f) { return "`$f` = VALUES(`$f`)"; }, $fields));
         $stmt = $pdo->prepare("INSERT INTO business (id, $cols) VALUES (1, $vals) ON DUPLICATE KEY UPDATE $updates");
         $params = [];
         foreach ($fields as $f) {
-            $params[":$f"] = $payload[$f] ?? '';
+            $v = $payload[$f] ?? '';
+            if (in_array($f, $nullableFields, true) && ($v === '' || $v === null)) {
+                $v = null;
+            }
+            $params[":$f"] = $v;
         }
         $stmt->execute($params);
     } elseif ($section === 'areas') {
@@ -102,6 +110,24 @@ try {
                 ':image' => $item['image'] ?? null,
                 ':color1' => $item['color1'] ?? null,
                 ':color2' => $item['color2'] ?? null,
+                ':sort_order' => $order++
+            ]);
+        }
+    } elseif ($section === 'testimonials') {
+        $pdo->exec('DELETE FROM testimonials');
+        $stmt = $pdo->prepare('INSERT INTO testimonials (name, area, service, content, photo, testimonial_date, status, sort_order) VALUES (:name, :area, :service, :content, :photo, :testimonial_date, :status, :sort_order)');
+        $order = 0;
+        foreach ($payload as $item) {
+            $status = ($item['status'] ?? '') === 'published' ? 'published' : 'draft';
+            $date = trim($item['date'] ?? '');
+            $stmt->execute([
+                ':name' => $item['name'] ?? '',
+                ':area' => $item['area'] ?? '',
+                ':service' => $item['service'] ?? '',
+                ':content' => $item['content'] ?? '',
+                ':photo' => $item['photo'] ?? null,
+                ':testimonial_date' => $date !== '' ? $date : null,
+                ':status' => $status,
                 ':sort_order' => $order++
             ]);
         }
