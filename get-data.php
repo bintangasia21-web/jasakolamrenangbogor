@@ -67,12 +67,26 @@ try {
         $testimonials = [];
     }
 
+    try {
+        $areaPhotos = array_map(function ($r) {
+            return [
+                'id' => (int) $r['id'],
+                'areaLink' => $r['area_link'],
+                'photo' => $r['photo'],
+                'caption' => $r['caption']
+            ];
+        }, $pdo->query('SELECT * FROM area_photos ORDER BY area_link, sort_order, id')->fetchAll());
+    } catch (Exception $e) {
+        $areaPhotos = [];
+    }
+
     echo json_encode([
         'business' => $business,
         'areas' => $areas,
         'faq' => $faq,
         'portfolio' => $portfolio,
-        'testimonials' => $testimonials
+        'testimonials' => $testimonials,
+        'areaPhotos' => $areaPhotos
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 } catch (Exception $e) {
     http_response_code(500);

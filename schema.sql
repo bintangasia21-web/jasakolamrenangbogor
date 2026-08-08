@@ -97,6 +97,19 @@ CREATE TABLE IF NOT EXISTS testimonials (
   sort_order INT NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Galeri foto PER AREA (bukan galeri global) — dikaitkan lewat area_link
+-- (bukan area.id) karena tab "Area Layanan" di admin menyimpan area dengan
+-- pola delete-all-lalu-insert-ulang setiap kali disimpan, jadi area.id
+-- tidak stabil antar penyimpanan; area_link (url halaman area, mis.
+-- "/area/sentul/") jauh lebih stabil sebagai kunci penghubung.
+CREATE TABLE IF NOT EXISTS area_photos (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  area_link VARCHAR(255) NOT NULL DEFAULT '',
+  photo VARCHAR(500) NOT NULL,
+  caption VARCHAR(255) NOT NULL DEFAULT '',
+  sort_order INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS pages (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   type ENUM('area','service','combo','article','portfolio','page') NOT NULL,

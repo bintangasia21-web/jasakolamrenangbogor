@@ -39,7 +39,8 @@
           areas: override.areas || base.areas,
           faq: override.faq || base.faq,
           portfolio: override.portfolio || base.portfolio,
-          testimonials: override.testimonials || base.testimonials || []
+          testimonials: override.testimonials || base.testimonials || [],
+          areaPhotos: override.areaPhotos || base.areaPhotos || []
         };
       }
     } catch (e) { /* ignore corrupt storage */ }
@@ -147,7 +148,10 @@
         '<div class="field"><label>Zona Prioritas?</label><select data-field="priority"><option value="true"' + (area.priority ? " selected" : "") + '>Ya</option><option value="false"' + (!area.priority ? " selected" : "") + '>Tidak</option></select></div>' +
         '<div class="field"><label>&nbsp;</label><button type="button" class="btn btn-secondary btn-sm" data-pick="' + idx + '">📍 Pilih Lokasi di Peta</button></div>' +
         '</div>' +
-        '<small class="picker-hint">' + (hasCoords ? "" : "Belum ada titik lokasi. Klik \"Pilih Lokasi di Peta\" lalu klik titiknya di peta di atas, atau isi Latitude/Longitude manual.") + '</small>';
+        '<small class="picker-hint">' + (hasCoords ? "" : "Belum ada titik lokasi. Klik \"Pilih Lokasi di Peta\" lalu klik titiknya di peta di atas, atau isi Latitude/Longitude manual.") + '</small>' +
+        '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Galeri Foto Area Ini</h4></div>' +
+        '<div data-gallery></div>' +
+        '<div class="field"><label>Unggah foto untuk area ini (langsung live)</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-upload-area="' + idx + '"><small data-upload-status>Foto khusus area ini, terpisah dari galeri Portofolio.</small></div>';
 
       card.querySelectorAll("[data-field]").forEach(function (inp) {
         inp.addEventListener(inp.tagName === "SELECT" ? "change" : "input", function () {
@@ -170,9 +174,67 @@
       card.querySelector("[data-pick]").addEventListener("click", function () {
         setActiveArea(idx);
       });
+      renderAreaGallery(card.querySelector("[data-gallery]"), area.link);
+      card.querySelector("[data-upload-area]").addEventListener("change", function (e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var status = card.querySelector("[data-upload-status]");
+        var fd = new FormData();
+        fd.append("photo", file);
+        status.textContent = "Mengunggah...";
+        fetch("upload-photo.php", { method: "POST", body: fd })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.success) {
+              status.textContent = data.message || "Upload gagal.";
+              toast(data.message || "Upload gagal.");
+              return;
+            }
+            state.areaPhotos.push({ areaLink: state.areas[idx].link, photo: data.url, caption: "" });
+            status.textContent = "Foto tersimpan. Mempublikasikan ke situs live...";
+            return syncSectionLive("area_photos", state.areaPhotos).then(function () {
+              status.textContent = "Foto tersimpan & sudah live di situs.";
+              renderAreaGallery(card.querySelector("[data-gallery]"), state.areas[idx].link);
+            });
+          })
+          .catch(function () {
+            status.textContent = "Gagal menghubungi server saat upload.";
+            toast("Gagal menghubungi server saat upload.");
+          });
+      });
       mount.appendChild(card);
     });
     refreshPickerMarkers();
+  }
+
+  function renderAreaGallery(container, areaLink) {
+    if (!container) return;
+    container.innerHTML = "";
+    var items = state.areaPhotos.filter(function (p) { return p.areaLink === areaLink; });
+    if (items.length === 0) {
+      container.innerHTML = '<small class="picker-hint">Belum ada foto untuk area ini.</small>';
+      return;
+    }
+    items.forEach(function (photoItem) {
+      var globalIdx = state.areaPhotos.indexOf(photoItem);
+      var row = document.createElement("div");
+      row.className = "thumb-preview";
+      row.style.cssText = "display:flex;align-items:center;gap:10px;height:auto;padding:8px;margin-bottom:8px";
+      row.innerHTML =
+        '<img src="' + photoItem.photo + '" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex:none">' +
+        '<input type="text" data-caption placeholder="Keterangan foto (opsional)" value="' + (photoItem.caption || "").toString().replace(/"/g, "&quot;") + '" style="flex:1;padding:8px 10px;border:1px solid var(--gray-300);border-radius:8px">' +
+        '<button type="button" class="btn btn-sm btn-danger" data-delete-photo>Hapus</button>';
+      row.querySelector("[data-caption]").addEventListener("blur", function (e) {
+        state.areaPhotos[globalIdx].caption = e.target.value;
+        syncSectionLive("area_photos", state.areaPhotos);
+      });
+      row.querySelector("[data-delete-photo]").addEventListener("click", function () {
+        state.areaPhotos.splice(globalIdx, 1);
+        syncSectionLive("area_photos", state.areaPhotos);
+        renderAreaGallery(container, areaLink);
+      });
+      container.appendChild(row);
+    });
   }
 
   function field(label, type, name, value) {

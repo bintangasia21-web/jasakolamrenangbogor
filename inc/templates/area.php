@@ -24,5 +24,50 @@ $areaName = $page['area_ref'] ?: $page['title'];
   </div>
 </section>
 
+<?php
+// Galeri foto khusus halaman area ini (bukan galeri global) — dibungkus
+// try/catch sendiri supaya kalau tabel area_photos belum ada (mis. skema
+// belum dijalankan ulang), halaman area tetap tampil normal tanpa galeri.
+try {
+    $stmt = $pdo->prepare('SELECT * FROM area_photos WHERE area_link = :link ORDER BY sort_order, id');
+    $stmt->execute([':link' => $page['url_path']]);
+    $areaPhotos = $stmt->fetchAll();
+} catch (Exception $e) {
+    $areaPhotos = [];
+}
+?>
+<?php if (!empty($areaPhotos)): ?>
+<section class="section-alt">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Galeri</span>
+      <h2>Foto Pekerjaan di <?= h($areaName) ?></h2>
+    </div>
+    <div class="portfolio-grid">
+      <?php foreach ($areaPhotos as $ap): ?>
+      <div class="portfolio-card">
+        <div class="portfolio-thumb"><img src="<?= h($ap['photo']) ?>" alt="<?= h($ap['caption'] ?: $areaName) ?>" loading="lazy"></div>
+        <?php if (!empty($ap['caption'])): ?>
+        <div class="portfolio-body"><p><?= h($ap['caption']) ?></p></div>
+        <?php endif; ?>
+      </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
 <?php render_faq_block($page['faq'], $business, $page['url_path']); ?>
 <?php render_cta_band('Konsultasikan Kebutuhan Kolam Renang Anda di ' . $areaName, 'Tim kami siap survei lokasi dan memberikan estimasi biaya tanpa biaya awal.', $business); ?>
+
+<script type="application/ld+json">
+<?= json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'Service',
+    'name' => 'Perawatan Kolam Renang ' . $areaName,
+    'serviceType' => 'Perawatan Kolam Renang',
+    'description' => $page['intro'],
+    'provider' => ['@type' => 'LocalBusiness', 'name' => $business['name']],
+    'areaServed' => $areaName
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>
+</script>

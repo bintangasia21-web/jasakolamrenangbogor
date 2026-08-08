@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(false, 'Metode tidak diizinkan.');
 }
 
-$allowedSections = ['business', 'areas', 'faq', 'portfolio', 'testimonials'];
+$allowedSections = ['business', 'areas', 'faq', 'portfolio', 'testimonials', 'area_photos'];
 $section = $_POST['section'] ?? '';
 $payloadRaw = $_POST['payload'] ?? '';
 
@@ -43,7 +43,7 @@ if ($section === 'portfolio') {
         }
     }
 }
-if (in_array($section, ['areas', 'faq', 'testimonials'], true) && !is_array($payload)) {
+if (in_array($section, ['areas', 'faq', 'testimonials', 'area_photos'], true) && !is_array($payload)) {
     respond(false, 'Data tidak valid.');
 }
 if ($section === 'business' && !is_array($payload)) {
@@ -128,6 +128,19 @@ try {
                 ':photo' => $item['photo'] ?? null,
                 ':testimonial_date' => $date !== '' ? $date : null,
                 ':status' => $status,
+                ':sort_order' => $order++
+            ]);
+        }
+    } elseif ($section === 'area_photos') {
+        $pdo->exec('DELETE FROM area_photos');
+        $stmt = $pdo->prepare('INSERT INTO area_photos (area_link, photo, caption, sort_order) VALUES (:area_link, :photo, :caption, :sort_order)');
+        $order = 0;
+        foreach ($payload as $item) {
+            if (empty($item['photo'])) continue;
+            $stmt->execute([
+                ':area_link' => $item['areaLink'] ?? '',
+                ':photo' => $item['photo'],
+                ':caption' => $item['caption'] ?? '',
                 ':sort_order' => $order++
             ]);
         }
