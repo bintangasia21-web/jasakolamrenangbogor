@@ -383,15 +383,6 @@
   }
 
   /* ---------- Portfolio / Foto ---------- */
-  function slugify(text) {
-    return (text || "")
-      .toString().toLowerCase().trim()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "");
-  }
-
   function renderPortfolio() {
     var mount = document.getElementById("portfolio-list-admin");
     mount.innerHTML = "";
@@ -402,27 +393,45 @@
         ? '<img src="' + item.image + '" alt="">'
         : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--blue-600);font-weight:700;background:linear-gradient(135deg,' + (item.color1 || "#1478c8") + "," + (item.color2 || "#00b8d9") + ')">Placeholder</div>';
 
+      // Halaman detail SEO dibuat/diperbarui OTOMATIS oleh server setiap
+      // kali Portfolio disimpan (lihat save-data.php) -- tidak ada lagi
+      // tombol "Buat Halaman Detail" terpisah yang bisa terlewat/gagal.
       var detailPage = item.detailLink ? pagesState.filter(function (p) { return p.type === "portfolio" && p.url_path === item.detailLink; })[0] : null;
       var detailHtml;
-      if (detailPage) {
+      if (item.detailLink) {
         detailHtml =
-          '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Halaman Detail Proyek</h4>' +
-          '<button type="button" class="btn btn-sm btn-secondary" data-edit-detail="' + detailPage.id + '">Edit Halaman Detail</button></div>' +
-          '<p style="color:var(--gray-600);font-size:.85rem;margin:0">' + detailPage.title + ' — <span class="status-badge ' + detailPage.status + '">' + (detailPage.status === "published" ? "Live" : "Draft") + '</span></p>';
+          '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Halaman Detail Proyek (otomatis)</h4>' +
+          '<div><a href="' + item.detailLink + '" target="_blank" rel="noopener" class="btn btn-sm btn-ghost">Lihat &rarr;</a> ' +
+          (detailPage ? '<button type="button" class="btn btn-sm btn-secondary" data-edit-detail="' + detailPage.id + '">Edit Konten (opsional)</button>' : '') +
+          '</div></div>' +
+          '<small style="color:var(--gray-500)">Halaman ini otomatis dibuat dari Judul + Deskripsi di atas. Pakai "Edit Konten" kalau ingin menulis cerita proyek lebih lengkap.</small>';
       } else {
         detailHtml =
-          '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Halaman Detail Proyek (opsional)</h4>' +
-          '<button type="button" class="btn btn-sm btn-secondary" data-create-detail="' + idx + '">+ Buat Halaman Detail</button></div>' +
-          '<small style="color:var(--gray-500)">Belum ada halaman studi-kasus untuk proyek ini — kartu di beranda/portofolio akan tampil tanpa tautan sampai halaman ini dibuat.</small>';
+          '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Halaman Detail Proyek (otomatis)</h4></div>' +
+          '<small style="color:var(--gray-500)">Akan otomatis dibuat begitu Anda menekan "Simpan Portofolio".</small>';
+      }
+
+      var areaOptions = '<option value="">— Pilih Area —</option>' + state.areas.map(function (a) {
+        return '<option value="' + a.name.replace(/"/g, "&quot;") + '"' + (a.name === item.area ? " selected" : "") + '>' + a.name + '</option>';
+      }).join("");
+      // Kalau area tersimpan tidak cocok dengan daftar area saat ini (mis.
+      // area sudah dihapus/diganti nama), tetap tampilkan sebagai opsi
+      // supaya datanya tidak hilang diam-diam saat admin buka form ini.
+      if (item.area && !state.areas.some(function (a) { return a.name === item.area; })) {
+        areaOptions += '<option value="' + item.area.replace(/"/g, "&quot;") + '" selected>' + item.area + ' (tidak ada di daftar area)</option>';
       }
 
       card.innerHTML =
         '<div class="admin-card-head"><h3>Foto #' + (idx + 1) + '</h3>' +
-        '<button type="button" class="btn btn-sm btn-danger" data-remove="' + idx + '">Hapus</button></div>' +
+        '<div>' +
+        '<button type="button" class="btn btn-sm btn-ghost" data-move-up="' + idx + '"' + (idx === 0 ? " disabled" : "") + '>&uarr; Naik</button> ' +
+        '<button type="button" class="btn btn-sm btn-ghost" data-move-down="' + idx + '"' + (idx === state.portfolio.length - 1 ? " disabled" : "") + '>&darr; Turun</button> ' +
+        '<button type="button" class="btn btn-sm btn-danger" data-remove="' + idx + '">Hapus</button>' +
+        '</div></div>' +
         '<div class="thumb-preview" data-thumb>' + thumbHtml + "</div>" +
         '<div class="form-grid">' +
         field("Judul", "text", "title", item.title) +
-        field("Area", "text", "area", item.area) +
+        '<div class="field"><label>Area / Lokasi</label><select data-field="area">' + areaOptions + '</select></div>' +
         "</div>" +
         field("Deskripsi", "textarea", "desc", item.desc) +
         field("URL Gambar (opsional)", "text", "image", item.image || "") +
@@ -434,26 +443,27 @@
         card.querySelector("[data-edit-detail]").addEventListener("click", function () {
           openPageEditor(detailPage.id, { presetType: "portfolio", onDone: renderPortfolio });
         });
-      } else {
-        card.querySelector("[data-create-detail]").addEventListener("click", function () {
-          var suggestedUrl = "/portofolio/" + (slugify(item.title) || "proyek-" + (idx + 1)) + "/";
-          openPageEditor(null, {
-            presetType: "portfolio",
-            onDone: renderPortfolio,
-            afterSave: function () {
-              state.portfolio[idx].detailLink = suggestedUrl;
-              syncSectionLive("portfolio", state.portfolio);
-            }
-          });
-          document.getElementById("pe-url").value = suggestedUrl;
-          document.getElementById("pe-title").value = item.title;
-          document.getElementById("pe-area-ref").value = item.area;
-        });
       }
+      card.querySelector("[data-move-up]").addEventListener("click", function () {
+        if (idx === 0) return;
+        var tmp = state.portfolio[idx - 1];
+        state.portfolio[idx - 1] = state.portfolio[idx];
+        state.portfolio[idx] = tmp;
+        renderPortfolio();
+        syncSectionLive("portfolio", state.portfolio);
+      });
+      card.querySelector("[data-move-down]").addEventListener("click", function () {
+        if (idx === state.portfolio.length - 1) return;
+        var tmp = state.portfolio[idx + 1];
+        state.portfolio[idx + 1] = state.portfolio[idx];
+        state.portfolio[idx] = tmp;
+        renderPortfolio();
+        syncSectionLive("portfolio", state.portfolio);
+      });
 
       var MAX_IMAGE_URL_LENGTH = 500;
       card.querySelectorAll("[data-field]").forEach(function (inp) {
-        inp.addEventListener("input", function () {
+        inp.addEventListener(inp.tagName === "SELECT" ? "change" : "input", function () {
           if (inp.dataset.field === "image" && inp.value.length > MAX_IMAGE_URL_LENGTH) {
             inp.value = "";
             toast("Teks terlalu panjang untuk kolom URL (kemungkinan kode base64). Gunakan tombol \"Atau unggah foto\" di bawahnya untuk mengunggah file.");
@@ -532,7 +542,8 @@
 
   function bindPortfolioButtons() {
     document.getElementById("btn-add-photo").addEventListener("click", function () {
-      state.portfolio.push({ title: "Proyek Baru", area: "Bogor Kota", desc: "Deskripsi singkat proyek.", color1: "#1478c8", color2: "#00b8d9", image: null });
+      var defaultArea = (state.areas[0] && state.areas[0].name) || "";
+      state.portfolio.push({ title: "Proyek Baru", area: defaultArea, desc: "Deskripsi singkat proyek.", color1: "#1478c8", color2: "#00b8d9", image: null });
       renderPortfolio();
     });
     document.getElementById("btn-save-portfolio").addEventListener("click", function () {

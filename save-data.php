@@ -15,6 +15,13 @@ function respond($success, $message) {
     exit;
 }
 
+function portfolio_slugify($text) {
+    $text = strtolower(trim((string) $text));
+    $text = preg_replace('/[^a-z0-9\s-]/', '', $text);
+    $text = preg_replace('/[\s-]+/', '-', $text);
+    return trim($text, '-');
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     respond(false, 'Metode tidak diizinkan.');
@@ -99,20 +106,67 @@ try {
             $stmt->execute([':q' => $item['q'] ?? '', ':a' => $item['a'] ?? '', ':sort_order' => $order++]);
         }
     } elseif ($section === 'portfolio') {
+        // Setiap item Portfolio otomatis dapat halaman detail SEO
+        // (pages type=portfolio) dalam transaksi yang SAMA -- tidak lagi
+        // ada langkah/tombol terpisah yang bisa terlewat atau gagal
+        // separuh jalan. Status selalu "published" karena item galeri
+        // portfolio memang sudah dianggap live begitu tersimpan.
         $pdo->exec('DELETE FROM portfolio');
         $stmt = $pdo->prepare('INSERT INTO portfolio (title, area, description, image, color1, color2, sort_order, detail_link) VALUES (:title, :area, :description, :image, :color1, :color2, :sort_order, :detail_link)');
+        // CATATAN: native prepared statements (PDO::ATTR_EMULATE_PREPARES
+        // false, lihat inc/db.php) TIDAK mendukung placeholder bernama
+        // yang sama dipakai dua kali dalam satu query -- karena itu :title
+        // dan :h1 dipisah jadi dua placeholder walau nilainya sama.
+        $pageStmt = $pdo->prepare(
+            "INSERT INTO pages (type, url_path, title, h1, area_ref, intro, content, cover_image, status)
+             VALUES ('portfolio', :url_path, :title, :h1, :area_ref, :intro, :content, :cover_image, 'published')
+             ON DUPLICATE KEY UPDATE title=VALUES(title), h1=VALUES(h1), area_ref=VALUES(area_ref),
+               intro=VALUES(intro), content=VALUES(content), status='published'"
+        );
         $order = 0;
+        $usedSlugs = [];
         foreach ($payload as $item) {
+            $title = trim($item['title'] ?? '');
+            $desc = $item['desc'] ?? '';
+            $area = $item['area'] ?? '';
+
+            $detailLink = null;
+            if ($title !== '') {
+                $slug = portfolio_slugify($title);
+                if ($slug === '') $slug = 'proyek-' . ($order + 1);
+                // Hindari dua judul yang menghasilkan slug sama saling
+                // menimpa halaman detail satu sama lain.
+                if (isset($usedSlugs[$slug])) {
+                    $usedSlugs[$slug]++;
+                    $slug .= '-' . $usedSlugs[$slug];
+                } else {
+                    $usedSlugs[$slug] = 1;
+                }
+                $detailLink = '/portofolio/' . $slug . '/';
+            }
+
             $stmt->execute([
-                ':title' => $item['title'] ?? '',
-                ':area' => $item['area'] ?? '',
-                ':description' => $item['desc'] ?? '',
+                ':title' => $title,
+                ':area' => $area,
+                ':description' => $desc,
                 ':image' => $item['image'] ?? null,
                 ':color1' => $item['color1'] ?? null,
                 ':color2' => $item['color2'] ?? null,
                 ':sort_order' => $order++,
-                ':detail_link' => $item['detailLink'] ?? null
+                ':detail_link' => $detailLink
             ]);
+
+            if ($detailLink !== null) {
+                $pageStmt->execute([
+                    ':url_path' => $detailLink,
+                    ':title' => $title,
+                    ':h1' => $title,
+                    ':area_ref' => $area,
+                    ':intro' => $desc,
+                    ':content' => '<p>' . htmlspecialchars($desc, ENT_QUOTES, 'UTF-8') . '</p>',
+                    ':cover_image' => $item['image'] ?? null
+                ]);
+            }
         }
     } elseif ($section === 'testimonials') {
         $pdo->exec('DELETE FROM testimonials');
