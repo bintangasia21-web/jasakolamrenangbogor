@@ -267,14 +267,19 @@ $showForm = $editId || $isNew;
           var title = titleInput.value.trim() || '(judul proyek belum diisi)';
           var area = areaSelect.value || '(area belum dipilih)';
           promptBox.value =
-            'Buatkan konten SEO untuk halaman portofolio proyek jasa kolam renang berikut:\n' +
+            'Buatkan konten SEO & GEO (local SEO) untuk halaman portofolio proyek jasa kolam renang berikut:\n' +
             '- Judul proyek (draft): ' + title + '\n' +
-            '- Area/lokasi: ' + area + '\n' +
-            '- Kota: Bogor, Indonesia\n\n' +
-            'Tujuan: konten dioptimalkan untuk SEO & GEO lokal (target Bogor & sekitarnya) supaya berpotensi rank halaman 1 Google, tapi tetap terasa alami untuk pembaca -- JANGAN mengulang kata kunci berlebihan (keyword stuffing).\n\n' +
+            '- Area/lokasi proyek: ' + area + '\n' +
+            '- Kota: Bogor, Jawa Barat, Indonesia\n\n' +
+            'Konteks bisnis: Jasa Kolam Renang Bogor melayani pembuatan, renovasi, dan perawatan kolam renang di wilayah Bogor & sekitarnya (Sentul, Puncak, Cibinong, Bogor Kota, Ciawi, Cijeruk, Yasmin, Rancamaya, Bogor Raya, Karadenan).\n\n' +
+            'Aturan SEO & GEO:\n' +
+            '1. Sebutkan nama area "' + area + '" secara alami di JUDUL dan minimal 2x di DESKRIPSI (sinyal local SEO) -- tapi JANGAN diulang kaku/berlebihan (keyword stuffing).\n' +
+            '2. Selipkan variasi istilah terkait secara alami (jasa kolam renang, perawatan kolam, renovasi kolam, dsb) sesuai konteks proyek -- bukan asal tempel semua istilah.\n' +
+            '3. Tulisan harus terdengar seperti ditulis oleh tim berpengalaman yang benar-benar mengerjakan proyek ini (sebutkan detail teknis yang masuk akal, bukan generik/template kosong).\n' +
+            '4. Target pembaca: calon pelanggan di area tersebut yang sedang mencari jasa kolam renang -- buat mereka yakin ini penyedia yang tepat.\n\n' +
             'Balas PERSIS dengan format berikut, tanpa tambahan teks lain:\n' +
-            'JUDUL: [judul proyek yang menarik, mengandung nama lokasi secara alami, maksimal 60 karakter]\n' +
-            'DESKRIPSI: [deskripsi proyek sekitar 50-70 kata, sebutkan lokasi & jenis layanan secara natural, meyakinkan calon pelanggan sekaligus ramah SEO]';
+            'JUDUL: [judul SEO-friendly, sebutkan area secara alami, maksimal 60 karakter, hindari clickbait]\n' +
+            'DESKRIPSI: [deskripsi 60-90 kata, sebutkan lokasi & jenis layanan secara natural (bukan berulang kaku), tulisan meyakinkan & terasa berpengalaman, akhiri dengan kesan hasil kerja yang memuaskan]';
         }
 
         titleInput.addEventListener('input', updatePrompt);
