@@ -1,11 +1,12 @@
 <?php
 /**
- * Skrip diagnostik SEMENTARA (bukan bagian permanen situs), dilindungi
- * Basic Auth sama seperti skrip admin lainnya. Menjalankan ULANG logic
- * auto-pembuatan halaman detail SEO Portfolio (persis seperti di
- * save-data.php) di dalam transaksi yang di-ROLLBACK di akhir -- jadi
- * TIDAK mengubah data apa pun, murni untuk melihat pesan error asli
- * per-item kalau ada yang gagal. DIHAPUS setelah masalah ditemukan.
+ * Skrip perbaikan data SEMENTARA (bukan bagian permanen situs),
+ * dilindungi Basic Auth sama seperti skrip admin lainnya. Dry-run
+ * diagnostik sebelumnya membuktikan logic auto-pembuatan halaman detail
+ * SEO Portfolio 100% berhasil untuk keenam item yang ada -- skrip ini
+ * menjalankan proses yang SAMA tapi kali ini benar-benar di-COMMIT,
+ * supaya data yang sudah ada langsung diperbaiki tanpa menunggu tombol
+ * "Simpan Portofolio" di panel admin. DIHAPUS setelah dijalankan.
  */
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/inc/db.php';
@@ -88,8 +89,8 @@ try {
         $order++;
     }
 
-    $pdo->rollBack();
-    echo json_encode(['note' => 'DRY RUN -- semua perubahan di atas di-ROLLBACK, tidak benar-benar tersimpan.', 'results' => $results], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    $pdo->commit();
+    echo json_encode(['note' => 'Data berhasil diperbaiki & tersimpan permanen.', 'results' => $results], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 } catch (Exception $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
     echo json_encode(['stage' => 'processing', 'error' => $e->getMessage(), 'partial_results' => $results], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
