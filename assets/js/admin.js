@@ -38,7 +38,6 @@
           business: Object.assign({}, base.business, override.business || {}),
           areas: override.areas || base.areas,
           faq: override.faq || base.faq,
-          portfolio: override.portfolio || base.portfolio,
           testimonials: override.testimonials || base.testimonials || [],
           areaPhotos: override.areaPhotos || base.areaPhotos || []
         };
@@ -382,136 +381,6 @@
     });
   }
 
-  /* ---------- Portfolio / Foto ---------- */
-  function renderPortfolio() {
-    var mount = document.getElementById("portfolio-list-admin");
-    mount.innerHTML = "";
-    state.portfolio.forEach(function (item, idx) {
-      var card = document.createElement("div");
-      card.className = "admin-card";
-      var thumbHtml = item.image
-        ? '<img src="' + item.image + '" alt="">'
-        : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--blue-600);font-weight:700;background:linear-gradient(135deg,' + (item.color1 || "#1478c8") + "," + (item.color2 || "#00b8d9") + ')">Placeholder</div>';
-
-      // Halaman detail SEO dibuat/diperbarui OTOMATIS oleh server setiap
-      // kali Portfolio disimpan (lihat save-data.php) -- tidak ada lagi
-      // tombol "Buat Halaman Detail" terpisah yang bisa terlewat/gagal.
-      var detailPage = item.detailLink ? pagesState.filter(function (p) { return p.type === "portfolio" && p.url_path === item.detailLink; })[0] : null;
-      var detailHtml;
-      if (item.detailLink) {
-        detailHtml =
-          '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Halaman Detail Proyek (otomatis)</h4>' +
-          '<div><a href="' + item.detailLink + '" target="_blank" rel="noopener" class="btn btn-sm btn-ghost">Lihat &rarr;</a> ' +
-          (detailPage ? '<button type="button" class="btn btn-sm btn-secondary" data-edit-detail="' + detailPage.id + '">Edit Konten (opsional)</button>' : '') +
-          '</div></div>' +
-          '<small style="color:var(--gray-500)">Halaman ini otomatis dibuat dari Judul + Deskripsi di atas. Pakai "Edit Konten" kalau ingin menulis cerita proyek lebih lengkap.</small>';
-      } else {
-        detailHtml =
-          '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Halaman Detail Proyek (otomatis)</h4></div>' +
-          '<small style="color:var(--gray-500)">Akan otomatis dibuat begitu Anda menekan "Simpan Portofolio".</small>';
-      }
-
-      var areaOptions = '<option value="">— Pilih Area —</option>' + state.areas.map(function (a) {
-        return '<option value="' + a.name.replace(/"/g, "&quot;") + '"' + (a.name === item.area ? " selected" : "") + '>' + a.name + '</option>';
-      }).join("");
-      // Kalau area tersimpan tidak cocok dengan daftar area saat ini (mis.
-      // area sudah dihapus/diganti nama), tetap tampilkan sebagai opsi
-      // supaya datanya tidak hilang diam-diam saat admin buka form ini.
-      if (item.area && !state.areas.some(function (a) { return a.name === item.area; })) {
-        areaOptions += '<option value="' + item.area.replace(/"/g, "&quot;") + '" selected>' + item.area + ' (tidak ada di daftar area)</option>';
-      }
-
-      card.innerHTML =
-        '<div class="admin-card-head"><h3>Foto #' + (idx + 1) + '</h3>' +
-        '<div>' +
-        '<button type="button" class="btn btn-sm btn-ghost" data-move-up="' + idx + '"' + (idx === 0 ? " disabled" : "") + '>&uarr; Naik</button> ' +
-        '<button type="button" class="btn btn-sm btn-ghost" data-move-down="' + idx + '"' + (idx === state.portfolio.length - 1 ? " disabled" : "") + '>&darr; Turun</button> ' +
-        '<button type="button" class="btn btn-sm btn-danger" data-remove="' + idx + '">Hapus</button>' +
-        '</div></div>' +
-        '<div class="thumb-preview" data-thumb>' + thumbHtml + "</div>" +
-        '<div class="form-grid">' +
-        field("Judul", "text", "title", item.title) +
-        '<div class="field"><label>Area / Lokasi</label><select data-field="area">' + areaOptions + '</select></div>' +
-        "</div>" +
-        field("Deskripsi", "textarea", "desc", item.desc) +
-        field("URL Gambar (opsional)", "text", "image", item.image || "") +
-        '<small class="picker-hint">Isi dengan tautan gambar biasa (https://... atau assets/...). JANGAN tempel kode base64/data:image di sini — gunakan tombol unggah di bawah.</small>' +
-        '<div class="field"><label>Atau unggah foto (langsung live)</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-upload="' + idx + '"><small data-upload-status>Foto yang diunggah langsung tersimpan di server dan tampil bagi semua pengunjung.</small></div>' +
-        detailHtml;
-
-      if (detailPage) {
-        card.querySelector("[data-edit-detail]").addEventListener("click", function () {
-          openPageEditor(detailPage.id, { presetType: "portfolio", onDone: renderPortfolio });
-        });
-      }
-      card.querySelector("[data-move-up]").addEventListener("click", function () {
-        if (idx === 0) return;
-        var tmp = state.portfolio[idx - 1];
-        state.portfolio[idx - 1] = state.portfolio[idx];
-        state.portfolio[idx] = tmp;
-        renderPortfolio();
-        syncSectionLive("portfolio", state.portfolio);
-      });
-      card.querySelector("[data-move-down]").addEventListener("click", function () {
-        if (idx === state.portfolio.length - 1) return;
-        var tmp = state.portfolio[idx + 1];
-        state.portfolio[idx + 1] = state.portfolio[idx];
-        state.portfolio[idx] = tmp;
-        renderPortfolio();
-        syncSectionLive("portfolio", state.portfolio);
-      });
-
-      var MAX_IMAGE_URL_LENGTH = 500;
-      card.querySelectorAll("[data-field]").forEach(function (inp) {
-        inp.addEventListener(inp.tagName === "SELECT" ? "change" : "input", function () {
-          if (inp.dataset.field === "image" && inp.value.length > MAX_IMAGE_URL_LENGTH) {
-            inp.value = "";
-            toast("Teks terlalu panjang untuk kolom URL (kemungkinan kode base64). Gunakan tombol \"Atau unggah foto\" di bawahnya untuk mengunggah file.");
-            return;
-          }
-          state.portfolio[idx][inp.dataset.field] = inp.value;
-          if (inp.dataset.field === "image") updateThumb(card, state.portfolio[idx]);
-        });
-      });
-      card.querySelector("[data-upload]").addEventListener("change", function (e) {
-        var file = e.target.files[0];
-        if (!file) return;
-        var status = card.querySelector("[data-upload-status]");
-        var fd = new FormData();
-        fd.append("photo", file);
-        status.textContent = "Mengunggah...";
-        fetch("upload-photo.php", { method: "POST", body: fd })
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            if (!data.success) {
-              status.textContent = data.message || "Upload gagal.";
-              toast(data.message || "Upload gagal.");
-              return;
-            }
-            state.portfolio[idx].image = data.url;
-            card.querySelector("[data-field='image']").value = data.url;
-            updateThumb(card, state.portfolio[idx]);
-            status.textContent = "Foto tersimpan. Mempublikasikan ke situs live...";
-            return syncSectionLive("portfolio", state.portfolio).then(function (saveData) {
-              status.textContent = (saveData && saveData.success)
-                ? "Foto tersimpan & sudah live di situs."
-                : "Foto diunggah, tapi GAGAL disimpan ke portofolio. " + ((saveData && saveData.message) || "Coba tekan \"Simpan Portofolio\" secara manual.");
-            });
-          })
-          .catch(function () {
-            status.textContent = "Gagal menghubungi server saat upload.";
-            toast("Gagal menghubungi server saat upload.");
-          });
-      });
-      card.querySelector("[data-remove]").addEventListener("click", function () {
-        state.portfolio.splice(idx, 1);
-        renderPortfolio();
-        syncSectionLive("portfolio", state.portfolio);
-      });
-      mount.appendChild(card);
-    });
-  }
-
   function syncSectionLive(section, payload) {
     var fd = new FormData();
     fd.append("section", section);
@@ -531,25 +400,6 @@
         // alih menampilkan pesan "sudah live" yang keliru walau gagal.
         return { success: false };
       });
-  }
-
-  function updateThumb(card, item) {
-    var thumb = card.querySelector("[data-thumb]");
-    thumb.innerHTML = item.image
-      ? '<img src="' + item.image + '" alt="">'
-      : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--blue-600);font-weight:700;background:linear-gradient(135deg,' + (item.color1 || "#1478c8") + "," + (item.color2 || "#00b8d9") + ')">Placeholder</div>';
-  }
-
-  function bindPortfolioButtons() {
-    document.getElementById("btn-add-photo").addEventListener("click", function () {
-      var defaultArea = (state.areas[0] && state.areas[0].name) || "";
-      state.portfolio.push({ title: "Proyek Baru", area: defaultArea, desc: "Deskripsi singkat proyek.", color1: "#1478c8", color2: "#00b8d9", image: null });
-      renderPortfolio();
-    });
-    document.getElementById("btn-save-portfolio").addEventListener("click", function () {
-      persist();
-      syncSectionLive("portfolio", state.portfolio);
-    });
   }
 
   /* ---------- Testimonial ---------- */
@@ -689,7 +539,6 @@
     renderBusinessForm();
     renderAreas();
     renderFaq();
-    renderPortfolio();
     renderTestimonials();
   }
 
@@ -754,13 +603,12 @@
           renderPagesTable();
           layananTable.reset();
           artikelTable.reset();
-          // Kartu Area Layanan & Portfolio menampilkan status halaman SEO
-          // terkait (dari pagesState) -- render ulang begitu data ini
-          // tersedia, karena loadPagesList() & fetchLiveBase() jalan
-          // paralel saat init() sehingga keduanya bisa saja sudah
-          // dirender lebih dulu sebelum pagesState terisi.
+          // Kartu Area Layanan menampilkan status halaman SEO terkait
+          // (dari pagesState) -- render ulang begitu data ini tersedia,
+          // karena loadPagesList() & fetchLiveBase() jalan paralel saat
+          // init() sehingga area bisa saja sudah dirender lebih dulu
+          // sebelum pagesState terisi.
           if (state && state.areas) renderAreas();
-          if (state && state.portfolio) renderPortfolio();
           renderHalamanUtama();
         } else {
           toast(data.message || "Gagal memuat daftar halaman.");
@@ -1424,7 +1272,6 @@
     bindBusinessForm();
     bindAreaButtons();
     bindFaqButtons();
-    bindPortfolioButtons();
     bindTestimonialButtons();
     bindExportImport();
     bindPasswordForm();

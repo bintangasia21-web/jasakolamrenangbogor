@@ -19,11 +19,13 @@
       Panel Admin
     </div>
     <nav class="admin-nav">
+      <a href="admin.php" style="display:block;padding:11px 12px;border-radius:8px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.92rem;font-weight:600;margin-bottom:4px">&larr; Dashboard</a>
+      <a href="edit-portfolio.php" style="display:block;padding:11px 12px;border-radius:8px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.92rem;font-weight:600;margin-bottom:4px">Portfolio (pola baru) &rarr;</a>
+      <div class="divider"></div>
       <button type="button" data-tab="bisnis" class="active">Info Bisnis</button>
       <button type="button" data-tab="halaman-utama">Halaman Utama</button>
       <button type="button" data-tab="area">Area Layanan</button>
       <button type="button" data-tab="faq">FAQ</button>
-      <button type="button" data-tab="foto">Portfolio</button>
       <button type="button" data-tab="testimonial">Testimonial</button>
       <button type="button" data-tab="layanan">Layanan</button>
       <button type="button" data-tab="artikel">Artikel</button>
@@ -37,7 +39,7 @@
 
   <main class="admin-main">
     <div class="admin-notice">
-      <strong>Catatan:</strong> Semua tab (Info Bisnis, Area Layanan, FAQ, Foto/Portofolio, Testimonial, Layanan, Artikel) sudah live — begitu Anda menekan tombol "Simpan..." di tiap tab, perubahan langsung tersimpan ke database dan tampil bagi semua pengunjung situs, tanpa perlu unduh/upload file apa pun. Tab <em>"Ekspor / Impor Data"</em> kini hanya untuk cadangan/backup opsional. Halaman ini sudah dilindungi HTTP Basic Auth (login browser) — kelola password login lewat tab <em>"Keamanan"</em>.
+      <strong>Catatan:</strong> Semua tab (Info Bisnis, Area Layanan, FAQ, Testimonial, Layanan, Artikel) sudah live — begitu Anda menekan tombol "Simpan..." di tiap tab, perubahan langsung tersimpan ke database dan tampil bagi semua pengunjung situs, tanpa perlu unduh/upload file apa pun. Portfolio kini dikelola lewat halaman terpisah — buka <a href="edit-portfolio.php">edit-portfolio.php</a>. Tab <em>"Ekspor / Impor Data"</em> kini hanya untuk cadangan/backup opsional. Halaman ini sudah dilindungi HTTP Basic Auth (login browser) — kelola password login lewat tab <em>"Keamanan"</em>.
     </div>
 
     <!-- Info Bisnis -->
@@ -134,17 +136,6 @@
         <button type="button" id="btn-save-faq" class="btn btn-primary">Simpan FAQ</button>
       </div>
       <div id="faq-list-admin"></div>
-    </section>
-
-    <!-- Portfolio -->
-    <section id="panel-foto" class="admin-panel">
-      <h2>Portfolio</h2>
-      <p class="panel-desc">Kelola galeri portofolio di beranda &amp; /portofolio/. Setiap proyek otomatis dapat halaman detail sendiri untuk SEO — tidak perlu langkah tambahan. Unggah foto langsung dari perangkat — otomatis tersimpan di server dan tampil bagi semua pengunjung tanpa perlu unduh/upload file apa pun.</p>
-      <div class="toolbar">
-        <button type="button" id="btn-add-photo" class="btn btn-secondary">+ Tambah Foto</button>
-        <button type="button" id="btn-save-portfolio" class="btn btn-primary">Simpan Portofolio</button>
-      </div>
-      <div id="portfolio-list-admin"></div>
     </section>
 
     <!-- Testimonial -->
