@@ -46,7 +46,7 @@ try {
     <div class="portfolio-grid">
       <?php foreach ($areaPhotos as $ap): ?>
       <div class="portfolio-card">
-        <div class="portfolio-thumb"><img src="<?= h($ap['photo']) ?>" alt="<?= h($ap['caption'] ?: $areaName) ?>" loading="lazy"></div>
+        <div class="portfolio-thumb"><img src="/<?= h(ltrim($ap['photo'], '/')) ?>" alt="<?= h($ap['caption'] ?: $areaName) ?>" loading="lazy"></div>
         <?php if (!empty($ap['caption'])): ?>
         <div class="portfolio-body"><p><?= h($ap['caption']) ?></p></div>
         <?php endif; ?>

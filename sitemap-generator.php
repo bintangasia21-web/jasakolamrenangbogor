@@ -20,7 +20,7 @@ try {
 // Halaman fisik (bukan lewat tabel "pages") yang selalu live-sync dari
 // data lain (portfolio/faq/business) — harus disebut manual di sini
 // karena query di atas tidak bisa "melihat" file fisik ini.
-$staticDynamicPages = ['/portofolio/', '/faq/', '/kontak/'];
+$staticDynamicPages = ['/portofolio/', '/faq/', '/kontak/', '/artikel/'];
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 ?>

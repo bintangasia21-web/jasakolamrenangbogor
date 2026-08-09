@@ -40,6 +40,11 @@ try {
 } catch (Exception $e) {
     $testimonials = [];
 }
+try {
+    $articles = $pdo->query("SELECT * FROM pages WHERE type = 'article' AND status = 'published' ORDER BY sort_order, id LIMIT 3")->fetchAll();
+} catch (Exception $e) {
+    $articles = [];
+}
 
 $areas = array_map(function ($r) {
     return [
@@ -356,6 +361,28 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
       <h2>Tips & Panduan Perawatan Kolam Renang</h2>
       <p>Artikel panduan seputar perawatan, renovasi, dan perbaikan kolam renang.</p>
     </div>
+    <?php if (!empty($articles)): ?>
+    <div class="portfolio-grid">
+      <?php foreach ($articles as $item): ?>
+      <a class="portfolio-card" href="<?= h($item['url_path']) ?>" style="display:block;color:inherit">
+        <div class="portfolio-thumb">
+          <?php if (!empty($item['cover_image'])): ?>
+          <img src="/<?= h(ltrim($item['cover_image'], '/')) ?>" alt="<?= h($item['title']) ?>" loading="lazy">
+          <?php else: ?>
+          <?= placeholder_svg($item['title'], '#1478c8', '#00b8d9') ?>
+          <?php endif; ?>
+        </div>
+        <div class="portfolio-body">
+          <h3><?= h($item['title']) ?></h3>
+          <p><?= h($item['intro']) ?></p>
+        </div>
+      </a>
+      <?php endforeach; ?>
+    </div>
+    <div class="text-center mt-32">
+      <a href="/artikel/" class="btn btn-outline" style="border-color:var(--blue-600);color:var(--blue-600)">Lihat Semua Artikel &rarr;</a>
+    </div>
+    <?php else: ?>
     <div class="empty-state">
       <h4 style="margin:0">Artikel Segera Hadir</h4>
       <p>Kami sedang menyiapkan kumpulan panduan kolam renang yang bermanfaat. Sementara menunggu, konsultasikan pertanyaan Anda langsung lewat WhatsApp.</p>
@@ -363,6 +390,7 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
         <a href="<?= h($waHref) ?>" class="btn btn-primary">Tanya via WhatsApp</a>
       </div>
     </div>
+    <?php endif; ?>
   </div>
 </section>
 
@@ -461,6 +489,7 @@ echo '<script type="application/ld+json">' . json_encode($faqLd, JSON_UNESCAPED_
         <a href="/layanan/">Semua Layanan</a>
         <a href="/area-layanan/">Area Layanan</a>
         <a href="/portofolio/">Proyek</a>
+        <a href="/artikel/">Artikel</a>
         <a href="/faq/">FAQ</a>
         <a href="/kontak/">Kontak</a>
       </div>

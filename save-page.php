@@ -56,22 +56,37 @@ $fields = [
 
 try {
     $pdo = get_db();
+
+    // cover_image (gambar sampul Artikel) adalah kolom baru -- kalau
+    // setup-schema.php belum dijalankan ulang di server ini, menyertakan
+    // kolom itu di query akan gagal. Deteksi dulu, susun SQL sesuai.
+    $hasCoverImage = true;
+    try {
+        $pdo->query('SELECT cover_image FROM pages LIMIT 1');
+    } catch (Exception $e) {
+        $hasCoverImage = false;
+    }
+    if ($hasCoverImage) {
+        $fields[':cover_image'] = $data['cover_image'] ?? null;
+    }
+
     if (!empty($data['id'])) {
         $fields[':id'] = (int) $data['id'];
-        $stmt = $pdo->prepare('UPDATE pages SET type=:type, tier=:tier, url_path=:url_path, title=:title, meta_title=:meta_title, meta_description=:meta_description, target_keyword=:target_keyword, h1=:h1, area_ref=:area_ref, service_ref=:service_ref, intro=:intro, content=:content, faq_json=:faq_json, status=:status WHERE id=:id');
+        $sql = 'UPDATE pages SET type=:type, tier=:tier, url_path=:url_path, title=:title, meta_title=:meta_title, meta_description=:meta_description, target_keyword=:target_keyword, h1=:h1, area_ref=:area_ref, service_ref=:service_ref, intro=:intro, content=:content, faq_json=:faq_json, status=:status'
+            . ($hasCoverImage ? ', cover_image=:cover_image' : '') . ' WHERE id=:id';
+        $stmt = $pdo->prepare($sql);
         $stmt->execute($fields);
         $id = $data['id'];
     } else {
         // Tanpa id: upsert berdasar url_path (bisa jadi baris sudah ada dari
         // import-pages.php sebagai draft) supaya tidak gagal karena UNIQUE.
-        $stmt = $pdo->prepare(
-            'INSERT INTO pages (type, tier, url_path, title, meta_title, meta_description, target_keyword, h1, area_ref, service_ref, intro, content, faq_json, status)
-             VALUES (:type,:tier,:url_path,:title,:meta_title,:meta_description,:target_keyword,:h1,:area_ref,:service_ref,:intro,:content,:faq_json,:status)
-             ON DUPLICATE KEY UPDATE type=VALUES(type), tier=VALUES(tier), title=VALUES(title), meta_title=VALUES(meta_title),
+        $cols = 'type, tier, url_path, title, meta_title, meta_description, target_keyword, h1, area_ref, service_ref, intro, content, faq_json, status' . ($hasCoverImage ? ', cover_image' : '');
+        $vals = ':type,:tier,:url_path,:title,:meta_title,:meta_description,:target_keyword,:h1,:area_ref,:service_ref,:intro,:content,:faq_json,:status' . ($hasCoverImage ? ',:cover_image' : '');
+        $updates = 'type=VALUES(type), tier=VALUES(tier), title=VALUES(title), meta_title=VALUES(meta_title),
                meta_description=VALUES(meta_description), target_keyword=VALUES(target_keyword), h1=VALUES(h1),
                area_ref=VALUES(area_ref), service_ref=VALUES(service_ref), intro=VALUES(intro), content=VALUES(content),
-               faq_json=VALUES(faq_json), status=VALUES(status)'
-        );
+               faq_json=VALUES(faq_json), status=VALUES(status)' . ($hasCoverImage ? ', cover_image=VALUES(cover_image)' : '');
+        $stmt = $pdo->prepare("INSERT INTO pages ($cols) VALUES ($vals) ON DUPLICATE KEY UPDATE $updates");
         $stmt->execute($fields);
         $idRow = $pdo->prepare('SELECT id FROM pages WHERE url_path = :url_path');
         $idRow->execute([':url_path' => $urlPath]);

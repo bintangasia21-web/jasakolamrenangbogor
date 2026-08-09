@@ -24,7 +24,9 @@
       <button type="button" data-tab="faq">FAQ</button>
       <button type="button" data-tab="foto">Foto / Portofolio</button>
       <button type="button" data-tab="testimonial">Testimonial</button>
-      <button type="button" data-tab="halaman">Halaman SEO</button>
+      <button type="button" data-tab="layanan">Layanan</button>
+      <button type="button" data-tab="artikel">Artikel</button>
+      <button type="button" data-tab="halaman">Halaman Kombinasi &amp; Lainnya</button>
       <div class="divider"></div>
       <button type="button" data-tab="preview">Pratinjau Situs</button>
       <button type="button" data-tab="data">Ekspor / Impor Data</button>
@@ -34,7 +36,7 @@
 
   <main class="admin-main">
     <div class="admin-notice">
-      <strong>Catatan:</strong> Semua tab (Info Bisnis, Area Layanan, FAQ, Foto/Portofolio, Testimonial) sudah live — begitu Anda menekan tombol "Simpan..." di tiap tab, perubahan langsung tersimpan ke database dan tampil bagi semua pengunjung situs, tanpa perlu unduh/upload file apa pun. Tab <em>"Ekspor / Impor Data"</em> kini hanya untuk cadangan/backup opsional. Halaman ini sudah dilindungi HTTP Basic Auth (login browser) — kelola password login lewat tab <em>"Keamanan"</em>.
+      <strong>Catatan:</strong> Semua tab (Info Bisnis, Area Layanan, FAQ, Foto/Portofolio, Testimonial, Layanan, Artikel) sudah live — begitu Anda menekan tombol "Simpan..." di tiap tab, perubahan langsung tersimpan ke database dan tampil bagi semua pengunjung situs, tanpa perlu unduh/upload file apa pun. Tab <em>"Ekspor / Impor Data"</em> kini hanya untuk cadangan/backup opsional. Halaman ini sudah dilindungi HTTP Basic Auth (login browser) — kelola password login lewat tab <em>"Keamanan"</em>.
     </div>
 
     <!-- Info Bisnis -->
@@ -155,10 +157,58 @@
       <div id="testimonial-list-admin"></div>
     </section>
 
+    <!-- Layanan -->
+    <section id="panel-layanan" class="admin-panel">
+      <h2>Layanan</h2>
+      <p class="panel-desc">Kelola halaman layanan (mis. Pembuatan Kolam Baru, Perawatan Rutin, dll). Halaman ini juga otomatis ditampilkan di bagian "Layanan" beranda. Status "Diterbitkan" langsung live di situs seketika, tanpa perlu deploy.</p>
+      <div class="toolbar">
+        <input type="text" id="layanan-search" placeholder="Cari judul/URL/keyword..." style="flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--gray-300);border-radius:8px">
+        <select id="layanan-filter-status" style="padding:10px 12px;border:1px solid var(--gray-300);border-radius:8px">
+          <option value="">Semua Status</option>
+          <option value="draft">Draft</option>
+          <option value="published">Diterbitkan</option>
+        </select>
+        <button type="button" id="btn-add-layanan" class="btn btn-secondary btn-sm">+ Tambah Layanan</button>
+        <button type="button" id="btn-refresh-layanan" class="btn btn-ghost btn-sm">Muat Ulang</button>
+      </div>
+      <div id="layanan-count" style="color:var(--gray-500);font-size:.85rem;margin-bottom:10px"></div>
+      <div class="admin-card" style="padding:0;overflow-x:auto">
+        <table class="data-table" id="layanan-table">
+          <thead><tr><th>Judul</th><th>URL</th><th>Keyword</th><th>Status</th><th></th></tr></thead>
+          <tbody id="layanan-table-body"></tbody>
+        </table>
+      </div>
+      <div class="toolbar" id="layanan-pagination" style="margin-top:14px"></div>
+    </section>
+
+    <!-- Artikel -->
+    <section id="panel-artikel" class="admin-panel">
+      <h2>Artikel</h2>
+      <p class="panel-desc">Kelola artikel panduan kolam renang. Artikel berstatus "Diterbitkan" otomatis muncul di bagian "Panduan Kolam Renang" beranda (menggantikan status "Segera Hadir").</p>
+      <div class="toolbar">
+        <input type="text" id="artikel-search" placeholder="Cari judul/URL/keyword..." style="flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--gray-300);border-radius:8px">
+        <select id="artikel-filter-status" style="padding:10px 12px;border:1px solid var(--gray-300);border-radius:8px">
+          <option value="">Semua Status</option>
+          <option value="draft">Draft</option>
+          <option value="published">Diterbitkan</option>
+        </select>
+        <button type="button" id="btn-add-artikel" class="btn btn-secondary btn-sm">+ Tambah Artikel</button>
+        <button type="button" id="btn-refresh-artikel" class="btn btn-ghost btn-sm">Muat Ulang</button>
+      </div>
+      <div id="artikel-count" style="color:var(--gray-500);font-size:.85rem;margin-bottom:10px"></div>
+      <div class="admin-card" style="padding:0;overflow-x:auto">
+        <table class="data-table" id="artikel-table">
+          <thead><tr><th>Sampul</th><th>Judul</th><th>URL</th><th>Keyword</th><th>Status</th><th></th></tr></thead>
+          <tbody id="artikel-table-body"></tbody>
+        </table>
+      </div>
+      <div class="toolbar" id="artikel-pagination" style="margin-top:14px"></div>
+    </section>
+
     <!-- Halaman SEO -->
     <section id="panel-halaman" class="admin-panel">
-      <h2>Halaman SEO</h2>
-      <p class="panel-desc">Kelola halaman area, kombinasi layanan×area, layanan, artikel, portofolio, dan halaman pendukung dalam satu daftar. Status "Diterbitkan" langsung live di situs seketika, tanpa perlu deploy.</p>
+      <h2>Halaman Kombinasi &amp; Lainnya</h2>
+      <p class="panel-desc">Kelola halaman area, kombinasi layanan×area, portofolio, dan halaman pendukung lain dalam satu daftar. Layanan &amp; Artikel kini punya tab tersendiri — gunakan tab tersebut untuk mengelolanya sehari-hari, tab ini tetap bisa dipakai sebagai cadangan untuk semua tipe halaman. Status "Diterbitkan" langsung live di situs seketika, tanpa perlu deploy.</p>
 
       <div class="admin-card">
         <div class="admin-card-head"><h3>Impor Massal dari Spreadsheet</h3></div>
@@ -197,56 +247,70 @@
         </table>
       </div>
       <div class="toolbar" id="pages-pagination" style="margin-top:14px"></div>
-
-      <!-- Form edit/tambah halaman -->
-      <div class="admin-card" id="page-editor" style="display:none;margin-top:20px">
-        <div class="admin-card-head"><h3 id="page-editor-title">Edit Halaman</h3><button type="button" class="btn btn-sm btn-ghost" id="btn-close-editor">Tutup</button></div>
-        <input type="hidden" id="pe-id">
-        <div class="form-grid">
-          <div class="field"><label>Tipe Halaman</label>
-            <select id="pe-type">
-              <option value="area">Area</option>
-              <option value="combo">Kombinasi Layanan × Area</option>
-              <option value="service">Layanan</option>
-              <option value="article">Artikel</option>
-              <option value="portfolio">Portofolio</option>
-              <option value="page">Halaman Pendukung</option>
-            </select>
-          </div>
-          <div class="field"><label>Status</label>
-            <select id="pe-status">
-              <option value="draft">Draft</option>
-              <option value="published">Diterbitkan (Live)</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-grid">
-          <div class="field"><label>Tier / Kategori Prioritas</label><input type="text" id="pe-tier" placeholder="Tier 1 - Area Prioritas"></div>
-          <div class="field"><label>URL Path</label><input type="text" id="pe-url" placeholder="/area/sentul/"></div>
-        </div>
-        <div class="field full"><label>Judul Halaman</label><input type="text" id="pe-title"></div>
-        <div class="form-grid">
-          <div class="field"><label>Meta Title (opsional)</label><input type="text" id="pe-meta-title"></div>
-          <div class="field"><label>Target Kata Kunci</label><input type="text" id="pe-keyword"></div>
-        </div>
-        <div class="field full"><label>Meta Description (opsional)</label><textarea id="pe-meta-desc" style="min-height:50px"></textarea></div>
-        <div class="form-grid">
-          <div class="field"><label>H1 (opsional, default = Judul)</label><input type="text" id="pe-h1"></div>
-          <div class="field"><label>Area Terkait (untuk tipe Area/Kombinasi)</label><input type="text" id="pe-area-ref"></div>
-        </div>
-        <div class="field full"><label>Layanan Terkait (untuk tipe Kombinasi)</label><input type="text" id="pe-service-ref"></div>
-        <div class="field full"><label>Intro / Lead Paragraph</label><textarea id="pe-intro" style="min-height:60px"></textarea></div>
-        <div class="field full"><label>Konten (HTML)</label><textarea id="pe-content" class="code" style="min-height:220px"></textarea></div>
-
-        <div class="admin-card-head" style="margin-top:16px"><h3>FAQ Halaman (opsional)</h3><button type="button" class="btn btn-sm btn-secondary" id="btn-pe-add-faq">+ Tambah FAQ</button></div>
-        <div id="pe-faq-list"></div>
-
-        <div class="toolbar" style="margin-top:16px">
-          <button type="button" class="btn btn-primary" id="btn-save-page">Simpan Halaman</button>
-        </div>
-        <p id="page-editor-msg" style="margin-top:10px;font-size:.88rem"></p>
-      </div>
     </section>
+
+    <!-- Form edit/tambah halaman -- dipakai bersama oleh tab Layanan, Artikel,
+         dan Halaman Kombinasi & Lainnya (diposisikan di luar .admin-panel
+         manapun supaya tetap bisa dibuka dari tab mana saja tanpa pindah tab) -->
+    <div class="admin-card" id="page-editor" style="display:none;margin-top:20px">
+      <div class="admin-card-head"><h3 id="page-editor-title">Edit Halaman</h3><button type="button" class="btn btn-sm btn-ghost" id="btn-close-editor">Tutup</button></div>
+      <input type="hidden" id="pe-id">
+      <div class="form-grid">
+        <div class="field"><label>Tipe Halaman</label>
+          <select id="pe-type">
+            <option value="area">Area</option>
+            <option value="combo">Kombinasi Layanan × Area</option>
+            <option value="service">Layanan</option>
+            <option value="article">Artikel</option>
+            <option value="portfolio">Portofolio</option>
+            <option value="page">Halaman Pendukung</option>
+          </select>
+        </div>
+        <div class="field"><label>Status</label>
+          <select id="pe-status">
+            <option value="draft">Draft</option>
+            <option value="published">Diterbitkan (Live)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label>Tier / Kategori Prioritas</label><input type="text" id="pe-tier" placeholder="Tier 1 - Area Prioritas"></div>
+        <div class="field"><label>URL Path</label><input type="text" id="pe-url" placeholder="/area/sentul/"></div>
+      </div>
+      <div class="field full"><label>Judul Halaman</label><input type="text" id="pe-title"></div>
+      <div class="form-grid">
+        <div class="field"><label>Meta Title (opsional)</label><input type="text" id="pe-meta-title"></div>
+        <div class="field"><label>Target Kata Kunci</label><input type="text" id="pe-keyword"></div>
+      </div>
+      <div class="field full"><label>Meta Description (opsional)</label><textarea id="pe-meta-desc" style="min-height:50px"></textarea></div>
+      <div class="form-grid">
+        <div class="field"><label>H1 (opsional, default = Judul)</label><input type="text" id="pe-h1"></div>
+        <div class="field"><label>Area Terkait (untuk tipe Area/Kombinasi)</label><input type="text" id="pe-area-ref"></div>
+      </div>
+      <div class="field full"><label>Layanan Terkait (untuk tipe Kombinasi)</label><input type="text" id="pe-service-ref"></div>
+
+      <div class="field" id="pe-cover-field">
+        <label>Gambar Sampul (khusus Artikel, opsional)</label>
+        <div class="thumb-preview" id="pe-cover-preview" style="width:160px;height:110px;margin-bottom:8px">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--gray-500);background:var(--gray-100);font-size:.8rem">Belum ada sampul</div>
+        </div>
+        <input type="hidden" id="pe-cover-image">
+        <input type="file" id="pe-cover-upload" accept="image/jpeg,image/png,image/webp,image/gif">
+        <small id="pe-cover-status">Unggah gambar sampul — langsung tersimpan &amp; live begitu artikel disimpan.</small>
+      </div>
+
+      <div class="field full"><label>Intro / Lead Paragraph</label><textarea id="pe-intro" style="min-height:60px"></textarea></div>
+      <div class="field full"><label>Konten (HTML)</label><textarea id="pe-content" class="code" style="min-height:220px"></textarea></div>
+
+      <div class="admin-card-head" style="margin-top:16px"><h3>FAQ Halaman (opsional)</h3><button type="button" class="btn btn-sm btn-secondary" id="btn-pe-add-faq">+ Tambah FAQ</button></div>
+      <div id="pe-faq-list"></div>
+
+      <div class="toolbar" style="margin-top:16px">
+        <button type="button" class="btn btn-primary" id="btn-save-page">Simpan Halaman</button>
+        <button type="button" class="btn btn-danger" id="btn-delete-page" style="display:none">Hapus Halaman</button>
+      </div>
+      <p id="page-editor-msg" style="margin-top:10px;font-size:.88rem"></p>
+    </div>
 
     <!-- Pratinjau -->
     <section id="panel-preview" class="admin-panel">

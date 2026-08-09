@@ -23,7 +23,15 @@ try {
         exit;
     }
 
-    $rows = $pdo->query('SELECT id, type, tier, title, url_path, target_keyword, status FROM pages ORDER BY id')->fetchAll();
+    // cover_image adalah kolom baru -- kalau setup-schema.php belum sempat
+    // dijalankan ulang di server ini, query dengan kolom itu akan gagal.
+    // Coba dulu dengan cover_image, fallback ke query lama supaya daftar
+    // halaman tetap termuat (cuma tanpa thumbnail) alih-alih error total.
+    try {
+        $rows = $pdo->query('SELECT id, type, tier, title, url_path, target_keyword, status, cover_image FROM pages ORDER BY id')->fetchAll();
+    } catch (Exception $e) {
+        $rows = $pdo->query('SELECT id, type, tier, title, url_path, target_keyword, status FROM pages ORDER BY id')->fetchAll();
+    }
     echo json_encode(['success' => true, 'pages' => $rows], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 } catch (Exception $e) {
     http_response_code(500);

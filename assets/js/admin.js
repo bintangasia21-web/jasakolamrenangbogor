@@ -629,12 +629,16 @@
     });
   }
 
-  /* ---------- Halaman SEO ---------- */
+  /* ---------- Halaman SEO / Layanan / Artikel (semua berbasis tabel "pages") ---------- */
   var pagesState = [];
-  var pagesPageIndex = 0;
   var PAGES_PER_PAGE = 50;
   var currentPageFaq = [];
   var typeLabels = { area: "Area", combo: "Kombinasi", service: "Layanan", article: "Artikel", portfolio: "Portofolio", page: "Pendukung" };
+  // Konteks editor halaman aktif saat ini -- dipakai supaya satu form
+  // #page-editor bisa dipanggil dari 3 tab berbeda (Halaman Kombinasi,
+  // Layanan, Artikel) dan tahu tipe mana yang harus di-preset untuk baris
+  // baru serta tabel mana yang perlu di-refresh setelah simpan/hapus.
+  var pageEditorContext = { presetType: null, onDone: null };
 
   function loadPagesList() {
     return fetch("get-pages.php", { cache: "no-store" })
@@ -642,8 +646,9 @@
       .then(function (data) {
         if (data.success) {
           pagesState = data.pages;
-          pagesPageIndex = 0;
           renderPagesTable();
+          layananTable.reset();
+          artikelTable.reset();
         } else {
           toast(data.message || "Gagal memuat daftar halaman.");
         }
@@ -651,6 +656,23 @@
       .catch(function () { toast("Gagal menghubungi server."); });
   }
 
+  function deletePageRow(id, onDone) {
+    if (!confirm("Hapus halaman ini? Tindakan ini tidak bisa dibatalkan.")) return;
+    var fd = new FormData();
+    fd.append("id", id);
+    fetch("delete-page.php", { method: "POST", body: fd })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        toast(data.message || (data.success ? "Halaman dihapus." : "Gagal menghapus."));
+        if (data.success) {
+          loadPagesList();
+          if (onDone) onDone();
+        }
+      })
+      .catch(function () { toast("Gagal menghubungi server."); });
+  }
+
+  var pagesPageIndex = 0;
   function getFilteredPages() {
     var q = (document.getElementById("pages-search").value || "").toLowerCase();
     var typeFilter = document.getElementById("pages-filter-type").value;
@@ -682,11 +704,14 @@
         "<td>" + (p.url_path || "") + "</td>" +
         "<td>" + (p.target_keyword || "") + "</td>" +
         "<td><span class=\"status-badge " + p.status + "\">" + (p.status === "published" ? "Live" : "Draft") + "</span></td>" +
-        "<td><button type=\"button\" class=\"btn btn-sm btn-secondary\" data-edit-page=\"" + p.id + "\">Edit</button></td>";
+        "<td><button type=\"button\" class=\"btn btn-sm btn-secondary\" data-edit-page=\"" + p.id + "\">Edit</button> <button type=\"button\" class=\"btn btn-sm btn-danger\" data-del-page=\"" + p.id + "\">Hapus</button></td>";
       tbody.appendChild(tr);
     });
     tbody.querySelectorAll("[data-edit-page]").forEach(function (btn) {
-      btn.addEventListener("click", function () { openPageEditor(btn.dataset.editPage); });
+      btn.addEventListener("click", function () { openPageEditor(btn.dataset.editPage, { presetType: null, onDone: renderPagesTable }); });
+    });
+    tbody.querySelectorAll("[data-del-page]").forEach(function (btn) {
+      btn.addEventListener("click", function () { deletePageRow(btn.dataset.delPage, renderPagesTable); });
     });
 
     var pager = document.getElementById("pages-pagination");
@@ -706,6 +731,78 @@
       pager.appendChild(prev); pager.appendChild(info); pager.appendChild(next);
     }
   }
+
+  // Tabel yang difilter ke satu tipe saja (dipakai tab Layanan & Artikel).
+  // Sumber datanya tetap array pagesState yang sama (dimuat sekali lewat
+  // loadPagesList()) -- cuma ditampilkan dengan filter type tetap, search,
+  // dan pagination sendiri-sendiri per tab.
+  function makeScopedPagesTable(type, ids) {
+    var pageIndex = 0;
+    function getFiltered() {
+      var q = (document.getElementById(ids.search).value || "").toLowerCase();
+      var statusFilter = document.getElementById(ids.statusFilter).value;
+      return pagesState.filter(function (p) {
+        if (p.type !== type) return false;
+        if (statusFilter && p.status !== statusFilter) return false;
+        if (q && (p.title || "").toLowerCase().indexOf(q) === -1 && (p.url_path || "").toLowerCase().indexOf(q) === -1 && (p.target_keyword || "").toLowerCase().indexOf(q) === -1) return false;
+        return true;
+      });
+    }
+    function render() {
+      var filtered = getFiltered();
+      document.getElementById(ids.count).textContent = filtered.length + " halaman";
+      var totalPages = Math.max(1, Math.ceil(filtered.length / PAGES_PER_PAGE));
+      if (pageIndex >= totalPages) pageIndex = totalPages - 1;
+      var start = pageIndex * PAGES_PER_PAGE;
+      var pageItems = filtered.slice(start, start + PAGES_PER_PAGE);
+      var tbody = document.getElementById(ids.tbody);
+      tbody.innerHTML = "";
+      pageItems.forEach(function (p) {
+        var tr = document.createElement("tr");
+        var coverCell = ids.showCover ? ("<td>" + (p.cover_image ? '<img src="' + p.cover_image + '" alt="" style="width:48px;height:34px;object-fit:cover;border-radius:4px">' : '—') + "</td>") : "";
+        tr.innerHTML = coverCell +
+          "<td title=\"" + (p.title || "").replace(/"/g, "&quot;") + "\">" + (p.title || "") + "</td>" +
+          "<td>" + (p.url_path || "") + "</td>" +
+          "<td>" + (p.target_keyword || "") + "</td>" +
+          "<td><span class=\"status-badge " + p.status + "\">" + (p.status === "published" ? "Live" : "Draft") + "</span></td>" +
+          "<td><button type=\"button\" class=\"btn btn-sm btn-secondary\" data-edit=\"" + p.id + "\">Edit</button> <button type=\"button\" class=\"btn btn-sm btn-danger\" data-del=\"" + p.id + "\">Hapus</button></td>";
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll("[data-edit]").forEach(function (btn) {
+        btn.addEventListener("click", function () { openPageEditor(btn.dataset.edit, { presetType: type, onDone: render }); });
+      });
+      tbody.querySelectorAll("[data-del]").forEach(function (btn) {
+        btn.addEventListener("click", function () { deletePageRow(btn.dataset.del, render); });
+      });
+
+      var pager = document.getElementById(ids.pagination);
+      pager.innerHTML = "";
+      if (totalPages > 1) {
+        var info = document.createElement("span");
+        info.style.cssText = "align-self:center;color:var(--gray-600);font-size:.85rem";
+        info.textContent = "Halaman " + (pageIndex + 1) + " / " + totalPages;
+        var prev = document.createElement("button");
+        prev.type = "button"; prev.className = "btn btn-sm btn-ghost"; prev.textContent = "← Sebelumnya";
+        prev.disabled = pageIndex === 0;
+        prev.addEventListener("click", function () { pageIndex--; render(); });
+        var next = document.createElement("button");
+        next.type = "button"; next.className = "btn btn-sm btn-ghost"; next.textContent = "Berikutnya →";
+        next.disabled = pageIndex >= totalPages - 1;
+        next.addEventListener("click", function () { pageIndex++; render(); });
+        pager.appendChild(prev); pager.appendChild(info); pager.appendChild(next);
+      }
+    }
+    return { render: render, reset: function () { pageIndex = 0; render(); } };
+  }
+
+  var layananTable = makeScopedPagesTable("service", {
+    search: "layanan-search", statusFilter: "layanan-filter-status", count: "layanan-count",
+    tbody: "layanan-table-body", pagination: "layanan-pagination", showCover: false
+  });
+  var artikelTable = makeScopedPagesTable("article", {
+    search: "artikel-search", statusFilter: "artikel-filter-status", count: "artikel-count",
+    tbody: "artikel-table-body", pagination: "artikel-pagination", showCover: true
+  });
 
   function renderPeFaq() {
     var mount = document.getElementById("pe-faq-list");
@@ -729,24 +826,44 @@
   }
 
   function resetPageEditorForm() {
-    ["pe-id", "pe-tier", "pe-url", "pe-title", "pe-meta-title", "pe-keyword", "pe-meta-desc", "pe-h1", "pe-area-ref", "pe-service-ref", "pe-intro", "pe-content"].forEach(function (id) {
+    ["pe-id", "pe-tier", "pe-url", "pe-title", "pe-meta-title", "pe-keyword", "pe-meta-desc", "pe-h1", "pe-area-ref", "pe-service-ref", "pe-intro", "pe-content", "pe-cover-image"].forEach(function (id) {
       document.getElementById(id).value = "";
     });
     document.getElementById("pe-type").value = "area";
+    document.getElementById("pe-type").disabled = false;
     document.getElementById("pe-status").value = "draft";
+    document.getElementById("pe-cover-upload").value = "";
+    document.getElementById("pe-cover-status").textContent = "Unggah gambar sampul — langsung tersimpan & live begitu artikel disimpan.";
+    updateCoverPreview("");
+    document.getElementById("btn-delete-page").style.display = "none";
     currentPageFaq = [];
     renderPeFaq();
     document.getElementById("page-editor-msg").textContent = "";
   }
 
-  function openPageEditor(id) {
+  function updateCoverPreview(url) {
+    var preview = document.getElementById("pe-cover-preview");
+    preview.innerHTML = url
+      ? '<img src="' + url + '" alt="">'
+      : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--gray-500);background:var(--gray-100);font-size:.8rem">Belum ada sampul</div>';
+  }
+
+  function openPageEditor(id, opts) {
+    opts = opts || {};
+    pageEditorContext = { presetType: opts.presetType || null, onDone: opts.onDone || loadPagesList };
+
     var editor = document.getElementById("page-editor");
     editor.style.display = "block";
     editor.scrollIntoView({ behavior: "smooth", block: "start" });
     resetPageEditorForm();
 
+    if (opts.presetType) {
+      document.getElementById("pe-type").value = opts.presetType;
+      document.getElementById("pe-type").disabled = true;
+    }
+
     if (!id) {
-      document.getElementById("page-editor-title").textContent = "Tambah Halaman Baru";
+      document.getElementById("page-editor-title").textContent = opts.presetType ? "Tambah " + (typeLabels[opts.presetType] || "Halaman") + " Baru" : "Tambah Halaman Baru";
       return;
     }
     document.getElementById("page-editor-title").textContent = "Memuat...";
@@ -770,8 +887,11 @@
         document.getElementById("pe-service-ref").value = p.service_ref || "";
         document.getElementById("pe-intro").value = p.intro || "";
         document.getElementById("pe-content").value = p.content || "";
+        document.getElementById("pe-cover-image").value = p.cover_image || "";
+        updateCoverPreview(p.cover_image || "");
         currentPageFaq = p.faq || [];
         renderPeFaq();
+        document.getElementById("btn-delete-page").style.display = "inline-block";
       })
       .catch(function () { toast("Gagal menghubungi server."); });
   }
@@ -781,13 +901,45 @@
     document.getElementById("pages-filter-type").addEventListener("change", function () { pagesPageIndex = 0; renderPagesTable(); });
     document.getElementById("pages-filter-status").addEventListener("change", function () { pagesPageIndex = 0; renderPagesTable(); });
     document.getElementById("btn-refresh-pages").addEventListener("click", loadPagesList);
-    document.getElementById("btn-add-page").addEventListener("click", function () { openPageEditor(null); });
+    document.getElementById("btn-add-page").addEventListener("click", function () { openPageEditor(null, { onDone: renderPagesTable }); });
     document.getElementById("btn-close-editor").addEventListener("click", function () {
       document.getElementById("page-editor").style.display = "none";
     });
     document.getElementById("btn-pe-add-faq").addEventListener("click", function () {
       currentPageFaq.push({ q: "Pertanyaan baru?", a: "Jawaban." });
       renderPeFaq();
+    });
+
+    document.getElementById("pe-cover-upload").addEventListener("change", function (e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var status = document.getElementById("pe-cover-status");
+      var fd = new FormData();
+      fd.append("photo", file);
+      status.textContent = "Mengunggah...";
+      fetch("upload-photo.php", { method: "POST", body: fd })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.success) {
+            status.textContent = data.message || "Upload gagal.";
+            toast(data.message || "Upload gagal.");
+            return;
+          }
+          document.getElementById("pe-cover-image").value = data.url;
+          updateCoverPreview(data.url);
+          status.textContent = "Sampul tersimpan. Jangan lupa tekan \"Simpan Halaman\" untuk mempublikasikannya.";
+        })
+        .catch(function () {
+          status.textContent = "Gagal menghubungi server saat upload.";
+          toast("Gagal menghubungi server saat upload.");
+        });
+    });
+
+    document.getElementById("btn-delete-page").addEventListener("click", function () {
+      var id = document.getElementById("pe-id").value;
+      if (!id) return;
+      deletePageRow(id, pageEditorContext.onDone);
+      document.getElementById("page-editor").style.display = "none";
     });
 
     document.getElementById("btn-save-page").addEventListener("click", function () {
@@ -807,6 +959,7 @@
         service_ref: document.getElementById("pe-service-ref").value,
         intro: document.getElementById("pe-intro").value,
         content: document.getElementById("pe-content").value,
+        cover_image: document.getElementById("pe-cover-image").value || null,
         faq: currentPageFaq
       };
       if (!payload.url_path || !payload.title) {
@@ -818,12 +971,19 @@
       msg.textContent = "Menyimpan...";
       var fd = new FormData();
       fd.append("payload", JSON.stringify(payload));
+      var onDone = pageEditorContext.onDone || loadPagesList;
       fetch("save-page.php", { method: "POST", body: fd })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           msg.style.color = data.success ? "#1eb857" : "#c0392b";
           msg.textContent = data.message;
-          if (data.success) loadPagesList();
+          if (data.success) {
+            loadPagesList();
+            if (data.id) {
+              document.getElementById("pe-id").value = data.id;
+              document.getElementById("btn-delete-page").style.display = "inline-block";
+            }
+          }
         })
         .catch(function () {
           msg.style.color = "#c0392b";
@@ -868,6 +1028,17 @@
     });
   }
 
+  // Tombol search/status/tambah/muat-ulang untuk tab Layanan & Artikel --
+  // pola sama persis, cuma beda id elemen & tipe & tabel target.
+  function bindScopedPagesTabUI(type, table, ids) {
+    document.getElementById(ids.search).addEventListener("input", table.reset);
+    document.getElementById(ids.statusFilter).addEventListener("change", table.reset);
+    document.getElementById(ids.refreshBtn).addEventListener("click", loadPagesList);
+    document.getElementById(ids.addBtn).addEventListener("click", function () {
+      openPageEditor(null, { presetType: type, onDone: table.render });
+    });
+  }
+
   function init() {
     initTabs();
     initPickerMap();
@@ -879,6 +1050,12 @@
     bindExportImport();
     bindPasswordForm();
     bindPagesUI();
+    bindScopedPagesTabUI("service", layananTable, {
+      search: "layanan-search", statusFilter: "layanan-filter-status", refreshBtn: "btn-refresh-layanan", addBtn: "btn-add-layanan"
+    });
+    bindScopedPagesTabUI("article", artikelTable, {
+      search: "artikel-search", statusFilter: "artikel-filter-status", refreshBtn: "btn-refresh-artikel", addBtn: "btn-add-artikel"
+    });
     loadPagesList();
     fetchLiveBase().then(function (base) {
       state = loadState(base);
