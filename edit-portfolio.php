@@ -20,6 +20,23 @@ function redirect_with($params) {
     exit;
 }
 
+/**
+ * Baca hasil paste dari ChatGPT (format "JUDUL: ..." / "DESKRIPSI: ...",
+ * lihat prompt yang dibuat di bagian form) dan pisahkan jadi field
+ * terpisah. Kalau formatnya tidak cocok, kembalikan null untuk field
+ * itu -- pemanggil tetap pakai nilai yang diketik manual di form.
+ */
+function parse_ai_response($text) {
+    $result = ['title' => null, 'desc' => null];
+    if (preg_match('/JUDUL\s*:\s*(.+)/i', $text, $m)) {
+        $result['title'] = trim($m[1]);
+    }
+    if (preg_match('/DESKRIPSI\s*:\s*(.+)/is', $text, $m)) {
+        $result['desc'] = trim($m[1]);
+    }
+    return $result;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -29,6 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $area = trim($_POST['area'] ?? '');
         $desc = trim($_POST['desc'] ?? '');
         $backParams = $id ? ['id' => $id] : ['new' => 1];
+
+        // Kalau admin menempel balasan ChatGPT, hasil parsingnya
+        // menggantikan Judul/Deskripsi yang diketik manual -- itu memang
+        // tujuan alur ini (isi lewat AI, bukan pelengkap).
+        $aiPaste = trim($_POST['ai_paste'] ?? '');
+        if ($aiPaste !== '') {
+            $parsed = parse_ai_response($aiPaste);
+            if ($parsed['title'] !== null) $title = $parsed['title'];
+            if ($parsed['desc'] !== null) $desc = $parsed['desc'];
+        }
 
         if ($title === '') {
             redirect_with($backParams + ['error' => 'Judul wajib diisi.']);
@@ -192,6 +219,19 @@ $showForm = $editId || $isNew;
               </select>
             </div>
           </div>
+          <div class="admin-card" style="background:var(--blue-50);border-style:dashed;margin:16px 0">
+            <div class="admin-card-head"><h4 style="margin:0">Bantuan Menulis dengan AI (opsional)</h4></div>
+            <p style="color:var(--gray-600);font-size:.85rem;margin:0 0 10px">Isi Judul &amp; Area di atas dulu, prompt di bawah otomatis menyesuaikan. Salin, tempel ke ChatGPT, lalu tempel balasannya ke kotak kedua — Judul &amp; Deskripsi akan otomatis terisi saat disimpan.</p>
+            <div class="field full">
+              <label>1. Prompt (salin ke ChatGPT)</label>
+              <textarea id="ai-prompt-box" readonly style="min-height:140px;font-size:.82rem" onclick="this.select()"></textarea>
+            </div>
+            <div class="field full">
+              <label>2. Tempel balasan ChatGPT di sini</label>
+              <textarea name="ai_paste" placeholder="Tempel balasan ChatGPT (format JUDUL: ... / DESKRIPSI: ...) di sini, lalu klik Simpan Proyek." style="min-height:100px"></textarea>
+              <small>Kalau kotak ini diisi, Judul &amp; Deskripsi di atas akan otomatis diganti dengan hasil dari sini saat disimpan.</small>
+            </div>
+          </div>
           <div class="field full">
             <label>Deskripsi</label>
             <textarea name="desc"><?= h($formDesc) ?></textarea>
@@ -212,6 +252,36 @@ $showForm = $editId || $isNew;
           </div>
         </form>
       </div>
+      <script>
+      // Murni templating teks di browser (tanpa fetch/AJAX/state) --
+      // hanya mengisi kotak prompt supaya bisa disalin ke ChatGPT.
+      // Tidak berkomunikasi ke server sama sekali, jadi tidak membawa
+      // balik risiko yang sama seperti panel admin lama.
+      (function () {
+        var titleInput = document.querySelector('form input[name="title"]');
+        var areaSelect = document.querySelector('form select[name="area"]');
+        var promptBox = document.getElementById('ai-prompt-box');
+        if (!titleInput || !areaSelect || !promptBox) return;
+
+        function updatePrompt() {
+          var title = titleInput.value.trim() || '(judul proyek belum diisi)';
+          var area = areaSelect.value || '(area belum dipilih)';
+          promptBox.value =
+            'Buatkan konten SEO untuk halaman portofolio proyek jasa kolam renang berikut:\n' +
+            '- Judul proyek (draft): ' + title + '\n' +
+            '- Area/lokasi: ' + area + '\n' +
+            '- Kota: Bogor, Indonesia\n\n' +
+            'Tujuan: konten dioptimalkan untuk SEO & GEO lokal (target Bogor & sekitarnya) supaya berpotensi rank halaman 1 Google, tapi tetap terasa alami untuk pembaca -- JANGAN mengulang kata kunci berlebihan (keyword stuffing).\n\n' +
+            'Balas PERSIS dengan format berikut, tanpa tambahan teks lain:\n' +
+            'JUDUL: [judul proyek yang menarik, mengandung nama lokasi secara alami, maksimal 60 karakter]\n' +
+            'DESKRIPSI: [deskripsi proyek sekitar 50-70 kata, sebutkan lokasi & jenis layanan secara natural, meyakinkan calon pelanggan sekaligus ramah SEO]';
+        }
+
+        titleInput.addEventListener('input', updatePrompt);
+        areaSelect.addEventListener('change', updatePrompt);
+        updatePrompt();
+      })();
+      </script>
     <?php else: ?>
       <div class="toolbar">
         <a href="edit-portfolio.php?new=1" class="btn btn-secondary">+ Tambah Proyek</a>
