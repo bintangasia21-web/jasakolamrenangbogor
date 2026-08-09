@@ -9,6 +9,27 @@ function h($s) {
     return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
 }
 
+function get_page_sections($pageKey) {
+    // Teks/copy halaman yang bisa diedit lewat tab admin "Halaman Utama"
+    // tanpa deploy. Dibungkus try/catch: kalau tabel page_sections belum
+    // ada (mis. setup-schema.php belum dijalankan) atau kosong, kembalikan
+    // array kosong -- pemanggil WAJIB pakai fallback teks default lewat
+    // pola `$sections['field_key'] ?? 'teks default'` supaya halaman tetap
+    // tampil normal.
+    try {
+        $pdo = get_db();
+        $stmt = $pdo->prepare('SELECT field_key, field_value FROM page_sections WHERE page_key = :page_key');
+        $stmt->execute([':page_key' => $pageKey]);
+        $sections = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $sections[$row['field_key']] = $row['field_value'];
+        }
+        return $sections;
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
 function placeholder_initials($title) {
     $words = preg_split('/\s+/', trim($title ?: 'Kolam Renang'));
     $initials = '';

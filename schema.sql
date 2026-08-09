@@ -139,3 +139,26 @@ CREATE TABLE IF NOT EXISTS pages (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uniq_url_path (url_path)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perluasan panel admin (brief 2026-08): gambar sampul untuk halaman
+-- Artikel, dan tautan opsional dari satu baris galeri "portfolio" ke
+-- halaman detail studi-kasus proyek (pages type=portfolio). Sengaja
+-- TANPA "IF NOT EXISTS" (lihat catatan di atas soal kompatibilitas versi
+-- MySQL/MariaDB di hosting ini) -- aman dijalankan ulang lewat
+-- setup-schema.php yang sudah menangani tiap statement individual.
+ALTER TABLE pages ADD COLUMN cover_image VARCHAR(500) DEFAULT NULL;
+ALTER TABLE portfolio ADD COLUMN detail_link VARCHAR(255) DEFAULT NULL;
+
+-- Teks/copy halaman yang sebelumnya hardcode di file PHP (Beranda, hub
+-- Portofolio/FAQ/Kontak) supaya bisa diedit lewat admin tanpa deploy.
+-- Key-value generik (bukan kolom per-field) karena tiap page_key butuh
+-- jumlah & nama field yang berbeda-beda (mis. beranda punya puluhan
+-- field per section, hub lain cuma h1+lead) -- kolom tetap di tabel
+-- pages/business tidak cocok untuk bentuk data seperti ini.
+CREATE TABLE IF NOT EXISTS page_sections (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  page_key VARCHAR(100) NOT NULL,
+  field_key VARCHAR(100) NOT NULL,
+  field_value TEXT,
+  UNIQUE KEY uniq_page_field (page_key, field_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
