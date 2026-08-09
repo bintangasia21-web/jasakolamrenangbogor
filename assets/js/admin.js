@@ -132,6 +132,21 @@
       var card = document.createElement("div");
       card.className = "admin-card";
       var hasCoords = typeof area.lat === "number" && typeof area.lng === "number";
+      var seoPage = pagesState.filter(function (p) { return p.type === "area" && p.url_path === area.link; })[0];
+      var seoStatusHtml;
+      if (seoPage) {
+        var mismatch = seoPage.status !== "published";
+        seoStatusHtml =
+          '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Halaman Konten SEO</h4>' +
+          '<button type="button" class="btn btn-sm btn-secondary" data-edit-area-page="' + seoPage.id + '">Edit Halaman Konten</button></div>' +
+          '<p style="color:var(--gray-600);font-size:.85rem;margin:0 0 6px">' + (seoPage.title || "") + ' — <span class="status-badge ' + seoPage.status + '">' + (seoPage.status === "published" ? "Live" : "Draft") + '</span></p>' +
+          (mismatch ? '<small style="color:#c0392b">⚠ Chip area ini aktif di beranda, tapi halaman kontennya masih draft (belum bisa diakses publik).</small>' : '');
+      } else {
+        seoStatusHtml =
+          '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Halaman Konten SEO</h4>' +
+          '<button type="button" class="btn btn-sm btn-secondary" data-create-area-page="' + idx + '">+ Buat Halaman Konten</button></div>' +
+          '<small style="color:var(--gray-500)">Belum ada halaman konten SEO untuk area ini — chip ini akan mengarah ke halaman yang belum tersedia sampai dibuat.</small>';
+      }
       card.innerHTML =
         '<div class="admin-card-head"><h3>Area #' + (idx + 1) + '</h3>' +
         '<button type="button" class="btn btn-sm btn-danger" data-remove="' + idx + '">Hapus</button></div>' +
@@ -149,9 +164,11 @@
         '<div class="field"><label>&nbsp;</label><button type="button" class="btn btn-secondary btn-sm" data-pick="' + idx + '">📍 Pilih Lokasi di Peta</button></div>' +
         '</div>' +
         '<small class="picker-hint">' + (hasCoords ? "" : "Belum ada titik lokasi. Klik \"Pilih Lokasi di Peta\" lalu klik titiknya di peta di atas, atau isi Latitude/Longitude manual.") + '</small>' +
+        seoStatusHtml +
         '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Galeri Foto Area Ini</h4></div>' +
         '<div data-gallery></div>' +
-        '<div class="field"><label>Unggah foto untuk area ini (langsung live)</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-upload-area="' + idx + '"><small data-upload-status>Foto khusus area ini, terpisah dari galeri Portofolio.</small></div>';
+        '<div class="field"><label>Unggah foto untuk area ini (langsung live)</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-upload-area="' + idx + '"><small data-upload-status>Foto khusus area ini, terpisah dari galeri Portofolio.</small></div>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:.85rem;color:var(--gray-600)"><input type="checkbox" data-remove-cascade> Saat hapus area ini, hapus juga halaman konten SEO &amp; foto galeri terkait</label>';
 
       card.querySelectorAll("[data-field]").forEach(function (inp) {
         inp.addEventListener(inp.tagName === "SELECT" ? "change" : "input", function () {
@@ -167,13 +184,33 @@
         });
       });
       card.querySelector("[data-remove]").addEventListener("click", function () {
+        var cascade = card.querySelector("[data-remove-cascade]").checked;
         if (activeAreaIndex === idx) activeAreaIndex = null;
+        var removedLink = state.areas[idx].link;
         state.areas.splice(idx, 1);
+        if (cascade) {
+          var matchingPage = pagesState.filter(function (p) { return p.type === "area" && p.url_path === removedLink; })[0];
+          state.areaPhotos = state.areaPhotos.filter(function (p) { return p.areaLink !== removedLink; });
+          syncSectionLive("area_photos", state.areaPhotos);
+          if (matchingPage) deletePageRow(matchingPage.id);
+        }
         renderAreas();
       });
       card.querySelector("[data-pick]").addEventListener("click", function () {
         setActiveArea(idx);
       });
+      if (seoPage) {
+        card.querySelector("[data-edit-area-page]").addEventListener("click", function () {
+          openPageEditor(seoPage.id, { presetType: "area", onDone: renderAreas });
+        });
+      } else {
+        card.querySelector("[data-create-area-page]").addEventListener("click", function () {
+          openPageEditor(null, { presetType: "area", onDone: renderAreas });
+          document.getElementById("pe-url").value = area.link;
+          document.getElementById("pe-area-ref").value = area.name;
+          document.getElementById("pe-title").value = "Jasa Kolam Renang " + area.name;
+        });
+      }
       renderAreaGallery(card.querySelector("[data-gallery]"), area.link);
       card.querySelector("[data-upload-area]").addEventListener("change", function (e) {
         var file = e.target.files[0];
@@ -649,6 +686,12 @@
           renderPagesTable();
           layananTable.reset();
           artikelTable.reset();
+          // Kartu Area Layanan menampilkan status halaman SEO terkait
+          // (dari pagesState) -- render ulang begitu data ini tersedia,
+          // karena loadPagesList() & fetchLiveBase() jalan paralel saat
+          // init() sehingga area bisa saja sudah dirender lebih dulu
+          // sebelum pagesState terisi.
+          if (state && state.areas) renderAreas();
         } else {
           toast(data.message || "Gagal memuat daftar halaman.");
         }
