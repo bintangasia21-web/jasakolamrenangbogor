@@ -28,11 +28,13 @@ $areas = array_map(function ($r) {
 }, $areasRaw);
 $areaLinkMap = array_column($areas, 'link', 'name');
 
+$s = get_page_sections('portofolio');
+
 $meta = [
     'title' => 'Portofolio Kami',
     'meta_title' => 'Portofolio Kolam Renang | Jasa Kolam Renang Bogor',
     'meta_description' => 'Galeri contoh pekerjaan pembuatan, perawatan, dan renovasi kolam renang kami di berbagai area Bogor.',
-    'intro' => 'Gambaran jenis proyek yang telah kami kerjakan di berbagai area Bogor.',
+    'intro' => $s['lead'] ?? 'Gambaran jenis proyek yang telah kami kerjakan di berbagai area Bogor.',
     'url_path' => '/portofolio/'
 ];
 
@@ -46,7 +48,7 @@ render_breadcrumbs([['Beranda', '/'], ['Portofolio', null]], $business);
   <div class="container">
     <div style="max-width:720px">
       <span class="hero-badge">Portofolio</span>
-      <h1>Contoh Pekerjaan Kami</h1>
+      <h1><?= h($s['h1'] ?? 'Contoh Pekerjaan Kami') ?></h1>
       <p class="lead"><?= h($meta['intro']) ?></p>
     </div>
   </div>

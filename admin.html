@@ -20,6 +20,7 @@
     </div>
     <nav class="admin-nav">
       <button type="button" data-tab="bisnis" class="active">Info Bisnis</button>
+      <button type="button" data-tab="halaman-utama">Halaman Utama</button>
       <button type="button" data-tab="area">Area Layanan</button>
       <button type="button" data-tab="faq">FAQ</button>
       <button type="button" data-tab="foto">Portfolio</button>
@@ -247,6 +248,16 @@
         </table>
       </div>
       <div class="toolbar" id="pages-pagination" style="margin-top:14px"></div>
+    </section>
+
+    <!-- Halaman Utama -->
+    <section id="panel-halaman-utama" class="admin-panel">
+      <h2>Halaman Utama</h2>
+      <p class="panel-desc">Kelola teks &amp; konten 5 halaman inti situs (Beranda, Layanan, Area Layanan, Portofolio, FAQ, Kontak). Halaman inti tidak bisa dihapus karena masih ditautkan dari menu navigasi situs. Gunakan tombol di bawah untuk membuat halaman baru di luar 5 halaman inti ini — halaman baru bisa diakses langsung lewat URL-nya, tapi belum otomatis muncul di menu navigasi.</p>
+      <div class="toolbar">
+        <button type="button" id="btn-add-halaman-utama" class="btn btn-secondary">+ Tambah Halaman Utama</button>
+      </div>
+      <div id="halaman-utama-list"></div>
     </section>
 
     <!-- Form edit/tambah halaman -- dipakai bersama oleh tab Layanan, Artikel,

@@ -28,11 +28,13 @@ $areas = array_map(function ($r) {
     return ['name' => $r['name'], 'link' => $r['link']];
 }, $areasRaw);
 
+$s = get_page_sections('faq');
+
 $meta = [
     'title' => 'FAQ - Pertanyaan yang Sering Diajukan',
     'meta_title' => 'FAQ Jasa Kolam Renang Bogor | Pertanyaan yang Sering Diajukan',
     'meta_description' => 'Jawaban atas pertanyaan yang sering diajukan seputar pembuatan, perawatan, dan renovasi kolam renang di Bogor.',
-    'intro' => 'Belum menemukan jawaban? Hubungi kami langsung melalui WhatsApp.',
+    'intro' => $s['lead'] ?? 'Belum menemukan jawaban? Hubungi kami langsung melalui WhatsApp.',
     'url_path' => '/faq/'
 ];
 
@@ -46,7 +48,7 @@ render_breadcrumbs([['Beranda', '/'], ['FAQ', null]], $business);
   <div class="container">
     <div style="max-width:720px">
       <span class="hero-badge">FAQ</span>
-      <h1>Pertanyaan yang Sering Diajukan</h1>
+      <h1><?= h($s['h1'] ?? 'Pertanyaan yang Sering Diajukan') ?></h1>
       <p class="lead"><?= h($meta['intro']) ?></p>
     </div>
   </div>

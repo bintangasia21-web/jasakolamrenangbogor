@@ -25,11 +25,13 @@ $areas = array_map(function ($r) {
     return ['name' => $r['name'], 'link' => $r['link']];
 }, $areasRaw);
 
+$s = get_page_sections('kontak');
+
 $meta = [
     'title' => 'Kontak Kami',
     'meta_title' => 'Kontak | Jasa Kolam Renang Bogor',
     'meta_description' => 'Hubungi Jasa Kolam Renang Bogor untuk konsultasi gratis pembuatan, perawatan, atau renovasi kolam renang Anda — via WhatsApp, telepon, atau email.',
-    'intro' => 'Konsultasikan kebutuhan kolam renang Anda, gratis tanpa biaya survei awal.',
+    'intro' => $s['lead'] ?? 'Konsultasikan kebutuhan kolam renang Anda, gratis tanpa biaya survei awal.',
     'url_path' => '/kontak/'
 ];
 
@@ -43,7 +45,7 @@ render_breadcrumbs([['Beranda', '/'], ['Kontak', null]], $business);
   <div class="container">
     <div style="max-width:720px">
       <span class="hero-badge">Kontak</span>
-      <h1>Hubungi Kami</h1>
+      <h1><?= h($s['h1'] ?? 'Hubungi Kami') ?></h1>
       <p class="lead"><?= h($meta['intro']) ?></p>
     </div>
   </div>

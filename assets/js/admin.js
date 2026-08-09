@@ -739,6 +739,7 @@
           // dirender lebih dulu sebelum pagesState terisi.
           if (state && state.areas) renderAreas();
           if (state && state.portfolio) renderPortfolio();
+          renderHalamanUtama();
         } else {
           toast(data.message || "Gagal memuat daftar halaman.");
         }
@@ -1136,6 +1137,216 @@
     });
   }
 
+  /* ---------- Halaman Utama ---------- */
+  // 5 halaman inti yang selalu ditautkan dari menu navigasi -- tidak
+  // pernah bisa dihapus lewat tab ini (dua di antaranya, Layanan & Area
+  // Layanan, juga diblokir langsung di delete-page.php sisi server).
+  var CORE_HUB_PAGES = {
+    "/layanan/": "Layanan",
+    "/area-layanan/": "Area Layanan"
+  };
+  var HOME_SECTIONS_FIELDS = [
+    { group: "Hero", fields: [
+      { key: "hero_badge", label: "Badge", type: "text" },
+      { key: "hero_h1", label: "H1", type: "text" },
+      { key: "hero_lead", label: "Lead", type: "textarea" }
+    ] },
+    { group: "Tentang", fields: [
+      { key: "tentang_eyebrow", label: "Eyebrow", type: "text" },
+      { key: "tentang_h2", label: "Judul (H2)", type: "text" },
+      { key: "tentang_lead", label: "Lead", type: "textarea" }
+    ] },
+    { group: "Layanan", fields: [
+      { key: "layanan_eyebrow", label: "Eyebrow", type: "text" },
+      { key: "layanan_h2", label: "Judul (H2)", type: "text" },
+      { key: "layanan_lead", label: "Lead", type: "textarea" }
+    ] },
+    { group: "Area Layanan", fields: [
+      { key: "area_eyebrow", label: "Eyebrow", type: "text" },
+      { key: "area_h2", label: "Judul (H2)", type: "text" },
+      { key: "area_lead", label: "Lead", type: "textarea" }
+    ] },
+    { group: "Masalah Kolam Renang", fields: [
+      { key: "masalah_eyebrow", label: "Eyebrow", type: "text" },
+      { key: "masalah_h2", label: "Judul (H2)", type: "text" },
+      { key: "masalah_lead", label: "Lead", type: "textarea" }
+    ] },
+    { group: "Proyek Nyata", fields: [
+      { key: "proyek_eyebrow", label: "Eyebrow", type: "text" },
+      { key: "proyek_h2", label: "Judul (H2)", type: "text" },
+      { key: "proyek_lead", label: "Lead", type: "textarea" }
+    ] },
+    { group: "Jenis Pelanggan", fields: [
+      { key: "jenis_pelanggan_eyebrow", label: "Eyebrow", type: "text" },
+      { key: "jenis_pelanggan_h2", label: "Judul (H2)", type: "text" },
+      { key: "jenis_pelanggan_lead", label: "Lead", type: "textarea" }
+    ] },
+    { group: "Panduan Kolam Renang", fields: [
+      { key: "panduan_eyebrow", label: "Eyebrow", type: "text" },
+      { key: "panduan_h2", label: "Judul (H2)", type: "text" },
+      { key: "panduan_lead", label: "Lead", type: "textarea" }
+    ] },
+    { group: "FAQ", fields: [
+      { key: "faq_eyebrow", label: "Eyebrow", type: "text" },
+      { key: "faq_h2", label: "Judul (H2)", type: "text" },
+      { key: "faq_lead", label: "Lead", type: "textarea" }
+    ] },
+    { group: "Testimonial", fields: [
+      { key: "testimonial_eyebrow", label: "Eyebrow", type: "text" },
+      { key: "testimonial_h2", label: "Judul (H2)", type: "text" },
+      { key: "testimonial_lead", label: "Lead", type: "textarea" }
+    ] },
+    { group: "CTA", fields: [
+      { key: "cta_title", label: "Judul CTA", type: "text" },
+      { key: "cta_subtitle", label: "Subjudul CTA", type: "textarea" }
+    ] }
+  ];
+  var HUB_SECTIONS_FIELDS = [
+    { group: null, fields: [
+      { key: "h1", label: "H1", type: "text" },
+      { key: "lead", label: "Lead / Intro", type: "textarea" }
+    ] }
+  ];
+
+  function renderPageSectionsCard(container, pageKey, title, groups, publicUrl) {
+    var card = document.createElement("div");
+    card.className = "admin-card";
+    var groupsHtml = groups.map(function (g) {
+      var fieldsHtml = g.fields.map(function (f) {
+        return field(f.label, f.type, f.key, "");
+      }).join("");
+      return (g.group ? '<h4 style="margin-top:16px">' + g.group + '</h4>' : '') + fieldsHtml;
+    }).join("");
+    card.innerHTML =
+      '<div class="admin-card-head"><h3>' + title + '</h3>' +
+      (publicUrl ? '<a href="' + publicUrl + '" target="_blank" rel="noopener" class="btn btn-sm btn-ghost">Lihat Halaman &rarr;</a>' : '') +
+      '</div>' + groupsHtml +
+      '<div class="toolbar" style="margin-top:12px"><button type="button" class="btn btn-primary btn-sm" data-save-sections>Simpan ' + title + '</button></div>' +
+      '<p data-sections-msg style="margin-top:8px;font-size:.85rem"></p>';
+    container.appendChild(card);
+
+    fetch("get-page-sections.php?page_key=" + encodeURIComponent(pageKey), { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var sections = (data && data.sections) || {};
+        card.querySelectorAll("[data-field]").forEach(function (inp) {
+          if (sections[inp.dataset.field] !== undefined) inp.value = sections[inp.dataset.field];
+        });
+      })
+      .catch(function () { /* form tetap kosong, admin bisa isi manual */ });
+
+    card.querySelector("[data-save-sections]").addEventListener("click", function () {
+      var msg = card.querySelector("[data-sections-msg]");
+      var payload = {};
+      card.querySelectorAll("[data-field]").forEach(function (inp) {
+        payload[inp.dataset.field] = inp.value;
+      });
+      msg.style.color = "var(--gray-600)";
+      msg.textContent = "Menyimpan...";
+      var fd = new FormData();
+      fd.append("page_key", pageKey);
+      fd.append("payload", JSON.stringify(payload));
+      fetch("save-page-sections.php", { method: "POST", body: fd })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          msg.style.color = data.success ? "#1eb857" : "#c0392b";
+          msg.textContent = data.message;
+          refreshPreview();
+        })
+        .catch(function () {
+          msg.style.color = "#c0392b";
+          msg.textContent = "Gagal menghubungi server.";
+        });
+    });
+  }
+
+  var halamanUtamaStaticRendered = false;
+
+  function renderHalamanUtama() {
+    var mount = document.getElementById("halaman-utama-list");
+    if (!mount.querySelector("#halaman-utama-dynamic")) {
+      mount.innerHTML = '<div id="halaman-utama-static"></div><div id="halaman-utama-dynamic"></div>';
+    }
+    var staticMount = document.getElementById("halaman-utama-static");
+    var mountDynamic = document.getElementById("halaman-utama-dynamic");
+    mountDynamic.innerHTML = "";
+
+    // Kartu berbasis page_sections (Beranda, Portofolio, FAQ, Kontak)
+    // punya input aktif yang mungkin sedang diketik admin -- dibangun
+    // SEKALI saja, TIDAK dibangun ulang tiap loadPagesList() jalan (yang
+    // terjadi berkali-kali lintas tab lain), supaya input yang belum
+    // disimpan tidak hilang begitu saja.
+    if (!halamanUtamaStaticRendered) {
+      renderPageSectionsCard(staticMount, "home", "Beranda", HOME_SECTIONS_FIELDS, "/");
+      renderPageSectionsCard(staticMount, "portofolio", "Portofolio", HUB_SECTIONS_FIELDS, "/portofolio/");
+      renderPageSectionsCard(staticMount, "faq", "FAQ", HUB_SECTIONS_FIELDS, "/faq/");
+      renderPageSectionsCard(staticMount, "kontak", "Kontak", HUB_SECTIONS_FIELDS, "/kontak/");
+      halamanUtamaStaticRendered = true;
+    }
+
+    var mount = mountDynamic;
+
+    // 2-3. Layanan & Area Layanan -- sudah berbentuk baris "pages" (type=page),
+    // jadi pakai editor pe-* yang sama seperti tab Layanan/Artikel/dll,
+    // bukan page_sections. Hapus diblokir (dipakai nav header hardcode).
+    Object.keys(CORE_HUB_PAGES).forEach(function (urlPath) {
+      var label = CORE_HUB_PAGES[urlPath];
+      var pageRow = pagesState.filter(function (p) { return p.url_path === urlPath; })[0];
+      var card = document.createElement("div");
+      card.className = "admin-card";
+      if (pageRow) {
+        card.innerHTML =
+          '<div class="admin-card-head"><h3>' + label + '</h3>' +
+          '<a href="' + urlPath + '" target="_blank" rel="noopener" class="btn btn-sm btn-ghost">Lihat Halaman &rarr;</a></div>' +
+          '<p style="color:var(--gray-600);font-size:.85rem;margin:0 0 10px">' + (pageRow.title || "") + ' — <span class="status-badge ' + pageRow.status + '">' + (pageRow.status === "published" ? "Live" : "Draft") + '</span></p>' +
+          '<button type="button" class="btn btn-secondary btn-sm" data-edit-hub="' + pageRow.id + '">Edit Konten Halaman</button>' +
+          '<p style="color:var(--gray-500);font-size:.8rem;margin-top:10px">Halaman inti — tidak bisa dihapus karena masih ditautkan dari menu navigasi situs.</p>';
+        card.querySelector("[data-edit-hub]").addEventListener("click", function () {
+          openPageEditor(pageRow.id, { presetType: "page", onDone: renderHalamanUtama });
+        });
+      } else {
+        card.innerHTML =
+          '<div class="admin-card-head"><h3>' + label + '</h3></div>' +
+          '<p style="color:#c0392b;font-size:.85rem">Halaman ini belum ada di database. Buat lewat tab "Halaman Kombinasi &amp; Lainnya" dengan URL <code>' + urlPath + '</code>.</p>';
+      }
+      mount.appendChild(card);
+    });
+
+    // 7. Halaman tambahan (type=page) yang dibuat admin di luar 5 halaman
+    // inti -- boleh diedit & dihapus bebas.
+    var extraPages = pagesState.filter(function (p) {
+      return p.type === "page" && !CORE_HUB_PAGES.hasOwnProperty(p.url_path);
+    });
+    if (extraPages.length > 0) {
+      var extraHead = document.createElement("h3");
+      extraHead.style.cssText = "margin-top:24px";
+      extraHead.textContent = "Halaman Tambahan";
+      mount.appendChild(extraHead);
+      extraPages.forEach(function (p) {
+        var card = document.createElement("div");
+        card.className = "admin-card";
+        card.innerHTML =
+          '<div class="admin-card-head"><h3>' + (p.title || p.url_path) + '</h3>' +
+          '<div><button type="button" class="btn btn-sm btn-secondary" data-edit-extra="' + p.id + '">Edit</button> ' +
+          '<button type="button" class="btn btn-sm btn-danger" data-del-extra="' + p.id + '">Hapus</button></div></div>' +
+          '<p style="color:var(--gray-600);font-size:.85rem;margin:0">' + p.url_path + ' — <span class="status-badge ' + p.status + '">' + (p.status === "published" ? "Live" : "Draft") + '</span></p>';
+        card.querySelector("[data-edit-extra]").addEventListener("click", function () {
+          openPageEditor(p.id, { presetType: "page", onDone: renderHalamanUtama });
+        });
+        card.querySelector("[data-del-extra]").addEventListener("click", function () {
+          deletePageRow(p.id, renderHalamanUtama);
+        });
+        mount.appendChild(card);
+      });
+    }
+  }
+
+  function bindHalamanUtamaUI() {
+    document.getElementById("btn-add-halaman-utama").addEventListener("click", function () {
+      openPageEditor(null, { presetType: "page", onDone: renderHalamanUtama });
+    });
+  }
+
   function init() {
     initTabs();
     initPickerMap();
@@ -1153,6 +1364,7 @@
     bindScopedPagesTabUI("article", artikelTable, {
       search: "artikel-search", statusFilter: "artikel-filter-status", refreshBtn: "btn-refresh-artikel", addBtn: "btn-add-artikel"
     });
+    bindHalamanUtamaUI();
     loadPagesList();
     fetchLiveBase().then(function (base) {
       state = loadState(base);
