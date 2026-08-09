@@ -12,6 +12,14 @@ render_breadcrumbs([['Beranda', '/'], [$page['title'], null]], $business);
   </div>
 </section>
 
+<?php if (!empty($page['cover_image'])): ?>
+<section>
+  <div class="container" style="max-width:800px">
+    <img src="/<?= h(ltrim($page['cover_image'], '/')) ?>" alt="<?= h($page['title']) ?>" style="width:100%;border-radius:var(--radius-md);box-shadow:var(--shadow-sm)" loading="lazy">
+  </div>
+</section>
+<?php endif; ?>
+
 <section>
   <div class="container" style="max-width:800px">
     <?= $page['content'] ?>

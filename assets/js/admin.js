@@ -1208,7 +1208,7 @@
     ] }
   ];
 
-  function renderPageSectionsCard(container, pageKey, title, groups, publicUrl) {
+  function renderPageSectionsCard(container, pageKey, title, groups, publicUrl, photoField) {
     var card = document.createElement("div");
     card.className = "admin-card";
     var groupsHtml = groups.map(function (g) {
@@ -1217,13 +1217,61 @@
       }).join("");
       return (g.group ? '<h4 style="margin-top:16px">' + g.group + '</h4>' : '') + fieldsHtml;
     }).join("");
+    var photoHtml = "";
+    if (photoField) {
+      photoHtml =
+        '<div class="field" style="margin-top:16px">' +
+        '<label>' + photoField.label + ' (opsional)</label>' +
+        '<div class="thumb-preview" data-photo-preview style="width:220px;height:140px;margin-bottom:8px">' +
+        '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--gray-500);background:var(--gray-100);font-size:.8rem">Belum ada foto</div>' +
+        '</div>' +
+        '<input type="hidden" data-field="' + photoField.key + '">' +
+        '<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-photo-upload>' +
+        '<small data-photo-status>Unggah foto — langsung tersimpan, tekan "Simpan ' + title + '" untuk mempublikasikannya.</small>' +
+        '</div>';
+    }
     card.innerHTML =
       '<div class="admin-card-head"><h3>' + title + '</h3>' +
       (publicUrl ? '<a href="' + publicUrl + '" target="_blank" rel="noopener" class="btn btn-sm btn-ghost">Lihat Halaman &rarr;</a>' : '') +
-      '</div>' + groupsHtml +
+      '</div>' + groupsHtml + photoHtml +
       '<div class="toolbar" style="margin-top:12px"><button type="button" class="btn btn-primary btn-sm" data-save-sections>Simpan ' + title + '</button></div>' +
       '<p data-sections-msg style="margin-top:8px;font-size:.85rem"></p>';
     container.appendChild(card);
+
+    function updatePhotoPreview(url) {
+      var preview = card.querySelector("[data-photo-preview]");
+      if (!preview) return;
+      preview.innerHTML = url
+        ? '<img src="' + url + '" alt="">'
+        : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--gray-500);background:var(--gray-100);font-size:.8rem">Belum ada foto</div>';
+    }
+
+    if (photoField) {
+      card.querySelector("[data-photo-upload]").addEventListener("change", function (e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var status = card.querySelector("[data-photo-status]");
+        var fd = new FormData();
+        fd.append("photo", file);
+        status.textContent = "Mengunggah...";
+        fetch("upload-photo.php", { method: "POST", body: fd })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.success) {
+              status.textContent = data.message || "Upload gagal.";
+              toast(data.message || "Upload gagal.");
+              return;
+            }
+            card.querySelector('[data-field="' + photoField.key + '"]').value = data.url;
+            updatePhotoPreview(data.url);
+            status.textContent = 'Foto tersimpan. Tekan "Simpan ' + title + '" untuk mempublikasikannya.';
+          })
+          .catch(function () {
+            status.textContent = "Gagal menghubungi server saat upload.";
+            toast("Gagal menghubungi server saat upload.");
+          });
+      });
+    }
 
     fetch("get-page-sections.php?page_key=" + encodeURIComponent(pageKey), { cache: "no-store" })
       .then(function (r) { return r.json(); })
@@ -1232,6 +1280,7 @@
         card.querySelectorAll("[data-field]").forEach(function (inp) {
           if (sections[inp.dataset.field] !== undefined) inp.value = sections[inp.dataset.field];
         });
+        if (photoField && sections[photoField.key]) updatePhotoPreview(sections[photoField.key]);
       })
       .catch(function () { /* form tetap kosong, admin bisa isi manual */ });
 
@@ -1277,7 +1326,7 @@
     // terjadi berkali-kali lintas tab lain), supaya input yang belum
     // disimpan tidak hilang begitu saja.
     if (!halamanUtamaStaticRendered) {
-      renderPageSectionsCard(staticMount, "home", "Beranda", HOME_SECTIONS_FIELDS, "/");
+      renderPageSectionsCard(staticMount, "home", "Beranda", HOME_SECTIONS_FIELDS, "/", { key: "hero_image", label: "Foto Hero Beranda" });
       renderPageSectionsCard(staticMount, "portofolio", "Portofolio", HUB_SECTIONS_FIELDS, "/portofolio/");
       renderPageSectionsCard(staticMount, "faq", "FAQ", HUB_SECTIONS_FIELDS, "/faq/");
       renderPageSectionsCard(staticMount, "kontak", "Kontak", HUB_SECTIONS_FIELDS, "/kontak/");

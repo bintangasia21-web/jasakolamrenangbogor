@@ -137,6 +137,9 @@ $jenisPelangganList = [
       </div>
     </div>
     <div class="hero-visual">
+      <?php if (!empty($s['hero_image'])): ?>
+      <img src="/<?= h(ltrim($s['hero_image'], '/')) ?>" alt="<?= h($business['name']) ?>">
+      <?php else: ?>
       <svg viewBox="0 0 420 320" xmlns="http://www.w3.org/2000/svg">
         <rect x="20" y="30" width="380" height="220" rx="18" fill="#ffffff" fill-opacity="0.12"/>
         <rect x="40" y="50" width="340" height="150" rx="10" fill="#ffffff" fill-opacity="0.85"/>
@@ -146,6 +149,7 @@ $jenisPelangganList = [
         <rect x="60" y="215" width="300" height="14" rx="7" fill="#ffffff" fill-opacity="0.5"/>
         <rect x="60" y="240" width="200" height="10" rx="5" fill="#ffffff" fill-opacity="0.35"/>
       </svg>
+      <?php endif; ?>
     </div>
   </div>
 </section>
