@@ -44,6 +44,17 @@ function portfolio_sync_seo_page($pdo, $portfolioId, $title, $area, $desc, $imag
         $urlPath = '/portofolio/' . $slug . '-' . $portfolioId . '/';
     }
 
+    // Deskripsi bisa berapa pun panjangnya (mis. hasil tempel dari AI
+    // yang menulis beberapa paragraf) -- pecah jadi paragraf HTML yang
+    // benar (bukan satu <p> raksasa tanpa jeda, karena browser
+    // mengabaikan baris baru mentah), dan pakai paragraf PERTAMA saja
+    // sebagai lead/intro singkat di bagian hero halaman detail.
+    $paragraphs = preg_split('/\n\s*\n/', trim($desc));
+    $contentHtml = implode('', array_map(function ($p) {
+        return '<p>' . nl2br(htmlspecialchars(trim($p), ENT_QUOTES, 'UTF-8')) . '</p>';
+    }, array_filter($paragraphs, function ($p) { return trim($p) !== ''; })));
+    $intro = trim($paragraphs[0] ?? $desc);
+
     $stmt = $pdo->prepare(
         "INSERT INTO pages (type, url_path, title, h1, area_ref, intro, content, cover_image, status)
          VALUES ('portfolio', :url_path, :title, :h1, :area_ref, :intro, :content, :cover_image, 'published')
@@ -55,8 +66,8 @@ function portfolio_sync_seo_page($pdo, $portfolioId, $title, $area, $desc, $imag
         ':title' => $title,
         ':h1' => $title,
         ':area_ref' => $area,
-        ':intro' => $desc,
-        ':content' => '<p>' . htmlspecialchars($desc, ENT_QUOTES, 'UTF-8') . '</p>',
+        ':intro' => $intro,
+        ':content' => $contentHtml,
         ':cover_image' => $image
     ]);
 
