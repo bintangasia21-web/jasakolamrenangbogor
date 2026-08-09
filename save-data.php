@@ -99,35 +99,20 @@ try {
             $stmt->execute([':q' => $item['q'] ?? '', ':a' => $item['a'] ?? '', ':sort_order' => $order++]);
         }
     } elseif ($section === 'portfolio') {
-        // detail_link kolom baru (tautan opsional ke halaman detail proyek
-        // di tabel pages) -- deteksi dulu supaya penyimpanan portofolio
-        // yang sudah ada tetap jalan normal walau setup-schema.php belum
-        // dijalankan ulang di server ini.
-        $hasDetailLink = true;
-        try {
-            $pdo->query('SELECT detail_link FROM portfolio LIMIT 1');
-        } catch (Exception $e) {
-            $hasDetailLink = false;
-        }
         $pdo->exec('DELETE FROM portfolio');
-        $cols = 'title, area, description, image, color1, color2, sort_order' . ($hasDetailLink ? ', detail_link' : '');
-        $vals = ':title, :area, :description, :image, :color1, :color2, :sort_order' . ($hasDetailLink ? ', :detail_link' : '');
-        $stmt = $pdo->prepare("INSERT INTO portfolio ($cols) VALUES ($vals)");
+        $stmt = $pdo->prepare('INSERT INTO portfolio (title, area, description, image, color1, color2, sort_order, detail_link) VALUES (:title, :area, :description, :image, :color1, :color2, :sort_order, :detail_link)');
         $order = 0;
         foreach ($payload as $item) {
-            $params = [
+            $stmt->execute([
                 ':title' => $item['title'] ?? '',
                 ':area' => $item['area'] ?? '',
                 ':description' => $item['desc'] ?? '',
                 ':image' => $item['image'] ?? null,
                 ':color1' => $item['color1'] ?? null,
                 ':color2' => $item['color2'] ?? null,
-                ':sort_order' => $order++
-            ];
-            if ($hasDetailLink) {
-                $params[':detail_link'] = $item['detailLink'] ?? null;
-            }
-            $stmt->execute($params);
+                ':sort_order' => $order++,
+                ':detail_link' => $item['detailLink'] ?? null
+            ]);
         }
     } elseif ($section === 'testimonials') {
         $pdo->exec('DELETE FROM testimonials');

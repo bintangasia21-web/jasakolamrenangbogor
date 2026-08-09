@@ -229,8 +229,10 @@
             }
             state.areaPhotos.push({ areaLink: state.areas[idx].link, photo: data.url, caption: "" });
             status.textContent = "Foto tersimpan. Mempublikasikan ke situs live...";
-            return syncSectionLive("area_photos", state.areaPhotos).then(function () {
-              status.textContent = "Foto tersimpan & sudah live di situs.";
+            return syncSectionLive("area_photos", state.areaPhotos).then(function (saveData) {
+              status.textContent = (saveData && saveData.success)
+                ? "Foto tersimpan & sudah live di situs."
+                : "Foto diunggah, tapi GAGAL disimpan ke galeri area. " + ((saveData && saveData.message) || "Coba tekan \"Simpan Area Layanan\" secara manual.");
               renderAreaGallery(card.querySelector("[data-gallery]"), state.areas[idx].link);
             });
           })
@@ -480,8 +482,10 @@
             card.querySelector("[data-field='image']").value = data.url;
             updateThumb(card, state.portfolio[idx]);
             status.textContent = "Foto tersimpan. Mempublikasikan ke situs live...";
-            return syncSectionLive("portfolio", state.portfolio).then(function () {
-              status.textContent = "Foto tersimpan & sudah live di situs.";
+            return syncSectionLive("portfolio", state.portfolio).then(function (saveData) {
+              status.textContent = (saveData && saveData.success)
+                ? "Foto tersimpan & sudah live di situs."
+                : "Foto diunggah, tapi GAGAL disimpan ke portofolio. " + ((saveData && saveData.message) || "Coba tekan \"Simpan Portofolio\" secara manual.");
             });
           })
           .catch(function () {
@@ -511,6 +515,11 @@
       })
       .catch(function () {
         toast("Gagal menghubungi server untuk publikasi live.");
+        // Selalu kembalikan objek dengan "success" eksplisit (bukan
+        // undefined) supaya pemanggil yang merangkai .then() setelah ini
+        // (mis. alur upload foto) bisa membedakan sukses vs gagal, alih-
+        // alih menampilkan pesan "sudah live" yang keliru walau gagal.
+        return { success: false };
       });
   }
 
@@ -587,8 +596,10 @@
             state.testimonials[idx].photo = data.url;
             card.querySelector("[data-thumb]").innerHTML = '<img src="' + data.url + '" alt="">';
             status.textContent = "Foto tersimpan. Mempublikasikan ke situs live...";
-            return syncSectionLive("testimonials", state.testimonials).then(function () {
-              status.textContent = "Foto tersimpan & sudah live di situs.";
+            return syncSectionLive("testimonials", state.testimonials).then(function (saveData) {
+              status.textContent = (saveData && saveData.success)
+                ? "Foto tersimpan & sudah live di situs."
+                : "Foto diunggah, tapi GAGAL disimpan ke testimonial. " + ((saveData && saveData.message) || "Coba tekan \"Simpan Testimonial\" secara manual.");
             });
           })
           .catch(function () {
