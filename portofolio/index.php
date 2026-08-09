@@ -57,7 +57,11 @@ render_breadcrumbs([['Beranda', '/'], ['Portofolio', null]], $business);
     <div class="portfolio-grid">
       <?php foreach ($portfolio as $item): ?>
       <?php
-        $areaLink = $areaLinkMap[$item['area']] ?? null;
+        // Prioritaskan halaman detail studi-kasus proyek (kalau sudah
+        // dibuatkan lewat tab admin Portfolio) di atas tautan ke halaman
+        // area generik -- lebih spesifik & lebih bermanfaat bagi pembaca.
+        $detailLink = $item['detail_link'] ?? null;
+        $targetLink = $detailLink ?: ($areaLinkMap[$item['area']] ?? null);
         $card = '<div class="portfolio-thumb">'
             . (!empty($item['image'])
                 ? '<img src="/' . h(ltrim($item['image'], '/')) . '" alt="' . h($item['title']) . '" loading="lazy">'
@@ -65,17 +69,17 @@ render_breadcrumbs([['Beranda', '/'], ['Portofolio', null]], $business);
             . '</div><div class="portfolio-body"><span class="tag">' . h($item['area']) . '</span>'
             . '<h3>' . h($item['title']) . '</h3><p>' . h($item['description']) . '</p></div>';
       ?>
-      <?php if ($areaLink): ?>
-      <a class="portfolio-card" href="<?= h($areaLink) ?>" style="display:block;color:inherit"><?= $card ?></a>
+      <?php if ($targetLink): ?>
+      <a class="portfolio-card" href="<?= h($targetLink) ?>" style="display:block;color:inherit"><?= $card ?></a>
       <?php else: ?>
       <div class="portfolio-card"><?= $card ?></div>
       <?php endif; ?>
       <?php endforeach; ?>
     </div>
     <?php if (empty($portfolio)): ?>
-    <p class="portfolio-note">Belum ada item portofolio. Tambahkan lewat panel admin (tab Foto/Portofolio).</p>
+    <p class="portfolio-note">Belum ada item portofolio. Tambahkan lewat panel admin (tab Portfolio).</p>
     <?php else: ?>
-    <p class="portfolio-note">Kartu dengan nama area yang cocok dapat diklik untuk melihat halaman area terkait.</p>
+    <p class="portfolio-note">Kartu dengan halaman detail proyek atau area yang cocok dapat diklik untuk melihat selengkapnya.</p>
     <?php endif; ?>
   </div>
 </section>

@@ -42,7 +42,11 @@ try {
             'desc' => $r['description'],
             'image' => $r['image'],
             'color1' => $r['color1'],
-            'color2' => $r['color2']
+            'color2' => $r['color2'],
+            // detail_link kolom baru -- SELECT * tidak error kalau kolom
+            // belum ada (cuma tidak muncul di $r), jadi ?? null cukup aman
+            // tanpa perlu try/catch terpisah untuk field ini.
+            'detailLink' => $r['detail_link'] ?? null
         ];
     }, $pdo->query('SELECT * FROM portfolio ORDER BY sort_order, id')->fetchAll());
 

@@ -313,20 +313,20 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
     </div>
     <div class="portfolio-grid" id="portfolio-grid">
       <?php foreach ($portfolio as $item): ?>
-      <div class="portfolio-card">
-        <div class="portfolio-thumb">
-          <?php if (!empty($item['image'])): ?>
-          <img src="<?= h($item['image']) ?>" alt="<?= h($item['title']) ?>" loading="lazy">
-          <?php else: ?>
-          <?= placeholder_svg($item['title'], $item['color1'] ?: '#1478c8', $item['color2'] ?: '#00b8d9') ?>
-          <?php endif; ?>
-        </div>
-        <div class="portfolio-body">
-          <span class="tag"><?= h($item['area']) ?></span>
-          <h3><?= h($item['title']) ?></h3>
-          <p><?= h($item['description']) ?></p>
-        </div>
-      </div>
+      <?php
+        $detailLink = $item['detail_link'] ?? null;
+        $card = '<div class="portfolio-thumb">'
+            . (!empty($item['image'])
+                ? '<img src="' . h($item['image']) . '" alt="' . h($item['title']) . '" loading="lazy">'
+                : placeholder_svg($item['title'], $item['color1'] ?: '#1478c8', $item['color2'] ?: '#00b8d9'))
+            . '</div><div class="portfolio-body"><span class="tag">' . h($item['area']) . '</span>'
+            . '<h3>' . h($item['title']) . '</h3><p>' . h($item['description']) . '</p></div>';
+      ?>
+      <?php if ($detailLink): ?>
+      <a class="portfolio-card" href="<?= h($detailLink) ?>" style="display:block;color:inherit"><?= $card ?></a>
+      <?php else: ?>
+      <div class="portfolio-card"><?= $card ?></div>
+      <?php endif; ?>
       <?php endforeach; ?>
     </div>
     <p class="portfolio-note">Gambar di atas adalah ilustrasi placeholder. Foto proyek asli dapat ditambahkan melalui panel admin.</p>

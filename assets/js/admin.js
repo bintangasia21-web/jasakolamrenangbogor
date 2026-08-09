@@ -381,6 +381,15 @@
   }
 
   /* ---------- Portfolio / Foto ---------- */
+  function slugify(text) {
+    return (text || "")
+      .toString().toLowerCase().trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
   function renderPortfolio() {
     var mount = document.getElementById("portfolio-list-admin");
     mount.innerHTML = "";
@@ -390,6 +399,21 @@
       var thumbHtml = item.image
         ? '<img src="' + item.image + '" alt="">'
         : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--blue-600);font-weight:700;background:linear-gradient(135deg,' + (item.color1 || "#1478c8") + "," + (item.color2 || "#00b8d9") + ')">Placeholder</div>';
+
+      var detailPage = item.detailLink ? pagesState.filter(function (p) { return p.type === "portfolio" && p.url_path === item.detailLink; })[0] : null;
+      var detailHtml;
+      if (detailPage) {
+        detailHtml =
+          '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Halaman Detail Proyek</h4>' +
+          '<button type="button" class="btn btn-sm btn-secondary" data-edit-detail="' + detailPage.id + '">Edit Halaman Detail</button></div>' +
+          '<p style="color:var(--gray-600);font-size:.85rem;margin:0">' + detailPage.title + ' — <span class="status-badge ' + detailPage.status + '">' + (detailPage.status === "published" ? "Live" : "Draft") + '</span></p>';
+      } else {
+        detailHtml =
+          '<div class="admin-card-head" style="margin-top:16px"><h4 style="margin:0">Halaman Detail Proyek (opsional)</h4>' +
+          '<button type="button" class="btn btn-sm btn-secondary" data-create-detail="' + idx + '">+ Buat Halaman Detail</button></div>' +
+          '<small style="color:var(--gray-500)">Belum ada halaman studi-kasus untuk proyek ini — kartu di beranda/portofolio akan tampil tanpa tautan sampai halaman ini dibuat.</small>';
+      }
+
       card.innerHTML =
         '<div class="admin-card-head"><h3>Foto #' + (idx + 1) + '</h3>' +
         '<button type="button" class="btn btn-sm btn-danger" data-remove="' + idx + '">Hapus</button></div>' +
@@ -401,7 +425,29 @@
         field("Deskripsi", "textarea", "desc", item.desc) +
         field("URL Gambar (opsional)", "text", "image", item.image || "") +
         '<small class="picker-hint">Isi dengan tautan gambar biasa (https://... atau assets/...). JANGAN tempel kode base64/data:image di sini — gunakan tombol unggah di bawah.</small>' +
-        '<div class="field"><label>Atau unggah foto (langsung live)</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-upload="' + idx + '"><small data-upload-status>Foto yang diunggah langsung tersimpan di server dan tampil bagi semua pengunjung.</small></div>';
+        '<div class="field"><label>Atau unggah foto (langsung live)</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-upload="' + idx + '"><small data-upload-status>Foto yang diunggah langsung tersimpan di server dan tampil bagi semua pengunjung.</small></div>' +
+        detailHtml;
+
+      if (detailPage) {
+        card.querySelector("[data-edit-detail]").addEventListener("click", function () {
+          openPageEditor(detailPage.id, { presetType: "portfolio", onDone: renderPortfolio });
+        });
+      } else {
+        card.querySelector("[data-create-detail]").addEventListener("click", function () {
+          var suggestedUrl = "/portofolio/" + (slugify(item.title) || "proyek-" + (idx + 1)) + "/";
+          openPageEditor(null, {
+            presetType: "portfolio",
+            onDone: renderPortfolio,
+            afterSave: function () {
+              state.portfolio[idx].detailLink = suggestedUrl;
+              syncSectionLive("portfolio", state.portfolio);
+            }
+          });
+          document.getElementById("pe-url").value = suggestedUrl;
+          document.getElementById("pe-title").value = item.title;
+          document.getElementById("pe-area-ref").value = item.area;
+        });
+      }
 
       var MAX_IMAGE_URL_LENGTH = 500;
       card.querySelectorAll("[data-field]").forEach(function (inp) {
@@ -675,7 +721,7 @@
   // #page-editor bisa dipanggil dari 3 tab berbeda (Halaman Kombinasi,
   // Layanan, Artikel) dan tahu tipe mana yang harus di-preset untuk baris
   // baru serta tabel mana yang perlu di-refresh setelah simpan/hapus.
-  var pageEditorContext = { presetType: null, onDone: null };
+  var pageEditorContext = { presetType: null, onDone: null, afterSave: null };
 
   function loadPagesList() {
     return fetch("get-pages.php", { cache: "no-store" })
@@ -686,12 +732,13 @@
           renderPagesTable();
           layananTable.reset();
           artikelTable.reset();
-          // Kartu Area Layanan menampilkan status halaman SEO terkait
-          // (dari pagesState) -- render ulang begitu data ini tersedia,
-          // karena loadPagesList() & fetchLiveBase() jalan paralel saat
-          // init() sehingga area bisa saja sudah dirender lebih dulu
-          // sebelum pagesState terisi.
+          // Kartu Area Layanan & Portfolio menampilkan status halaman SEO
+          // terkait (dari pagesState) -- render ulang begitu data ini
+          // tersedia, karena loadPagesList() & fetchLiveBase() jalan
+          // paralel saat init() sehingga keduanya bisa saja sudah
+          // dirender lebih dulu sebelum pagesState terisi.
           if (state && state.areas) renderAreas();
+          if (state && state.portfolio) renderPortfolio();
         } else {
           toast(data.message || "Gagal memuat daftar halaman.");
         }
@@ -893,7 +940,7 @@
 
   function openPageEditor(id, opts) {
     opts = opts || {};
-    pageEditorContext = { presetType: opts.presetType || null, onDone: opts.onDone || loadPagesList };
+    pageEditorContext = { presetType: opts.presetType || null, onDone: opts.onDone || loadPagesList, afterSave: opts.afterSave || null };
 
     var editor = document.getElementById("page-editor");
     editor.style.display = "block";
@@ -1014,17 +1061,24 @@
       msg.textContent = "Menyimpan...";
       var fd = new FormData();
       fd.append("payload", JSON.stringify(payload));
-      var onDone = pageEditorContext.onDone || loadPagesList;
+      var onDone = pageEditorContext.onDone;
+      var afterSave = pageEditorContext.afterSave;
       fetch("save-page.php", { method: "POST", body: fd })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           msg.style.color = data.success ? "#1eb857" : "#c0392b";
           msg.textContent = data.message;
           if (data.success) {
-            loadPagesList();
+            loadPagesList().then(function () {
+              if (onDone) onDone();
+            });
             if (data.id) {
               document.getElementById("pe-id").value = data.id;
               document.getElementById("btn-delete-page").style.display = "inline-block";
+            }
+            if (afterSave) {
+              afterSave(data.id, data.url_path);
+              pageEditorContext.afterSave = null;
             }
           }
         })
