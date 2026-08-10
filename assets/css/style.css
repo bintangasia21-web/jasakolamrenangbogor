@@ -292,6 +292,12 @@ a.portfolio-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-m
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
   overflow: hidden; text-overflow: ellipsis;
 }
+.portfolio-link {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 10px;
+  font-size: .84rem; font-weight: 700; color: var(--blue-600);
+}
+.portfolio-link .arrow { transition: transform .3s cubic-bezier(.4,0,.2,1); }
+a.portfolio-card:hover .portfolio-link .arrow { transform: translateX(4px); }
 .portfolio-note {
   text-align: center; color: var(--gray-500); font-size: .88rem;
   margin-top: 28px; padding: 14px; border: 1px dashed var(--gray-300); border-radius: var(--radius-sm);

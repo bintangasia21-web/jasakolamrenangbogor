@@ -37,7 +37,7 @@ render_breadcrumbs([['Beranda', '/'], ['Portofolio', '/portofolio/'], [$page['ti
   $otherProjects = [];
   try {
       $stmt = $pdo->prepare(
-          "SELECT title, area, image, color1, color2, detail_link FROM portfolio
+          "SELECT title, area, description, image, color1, color2, detail_link FROM portfolio
            WHERE detail_link IS NOT NULL AND detail_link != '' AND detail_link != :current
            ORDER BY sort_order, id LIMIT 3"
       );
@@ -65,6 +65,8 @@ render_breadcrumbs([['Beranda', '/'], ['Portofolio', '/portofolio/'], [$page['ti
         <div class="portfolio-body">
           <span class="tag"><?= h($item['area']) ?></span>
           <h3><?= h($item['title']) ?></h3>
+          <p><?= h($item['description']) ?></p>
+          <span class="portfolio-link">Lihat Detail <span class="arrow">&rarr;</span></span>
         </div>
       </a>
       <?php endforeach; ?>

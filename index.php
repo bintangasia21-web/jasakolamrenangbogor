@@ -332,7 +332,9 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
                 ? '<img src="' . h($item['image']) . '" alt="' . h($item['title']) . '" loading="lazy">'
                 : placeholder_svg($item['title'], $item['color1'] ?: '#1478c8', $item['color2'] ?: '#00b8d9'))
             . '</div><div class="portfolio-body"><span class="tag">' . h($item['area']) . '</span>'
-            . '<h3>' . h($item['title']) . '</h3><p>' . h($item['description']) . '</p></div>';
+            . '<h3>' . h($item['title']) . '</h3><p>' . h($item['description']) . '</p>'
+            . ($detailLink ? '<span class="portfolio-link">Lihat Detail <span class="arrow">&rarr;</span></span>' : '')
+            . '</div>';
       ?>
       <?php if ($detailLink): ?>
       <a class="portfolio-card" href="<?= h($detailLink) ?>" style="display:block;color:inherit"><?= $card ?></a>
