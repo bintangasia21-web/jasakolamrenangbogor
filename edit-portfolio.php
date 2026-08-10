@@ -189,6 +189,7 @@ $showForm = $editId || $isNew;
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/admin.css">
+<script src="assets/js/image-compress.js"></script>
 </head>
 <body class="admin-body">
 
@@ -322,6 +323,45 @@ $showForm = $editId || $isNew;
         titleInput.addEventListener('input', updatePrompt);
         areaSelect.addEventListener('change', updatePrompt);
         updatePrompt();
+      })();
+      </script>
+      <script>
+      // Kompresi foto di browser sebelum form submit biasa (bukan AJAX)
+      // -- pakai DataTransfer untuk mengganti isi <input type="file">
+      // dengan versi terkompresi, supaya sisi server (store_photo_upload()
+      // di inc/photo-helpers.php) tidak perlu berubah sama sekali.
+      (function () {
+        var fileInput = document.querySelector('form input[name="photo"]');
+        var form = fileInput ? fileInput.closest('form') : null;
+        if (!fileInput || !form) return;
+
+        var status = document.createElement('small');
+        status.style.display = 'block';
+        status.style.marginTop = '4px';
+        fileInput.insertAdjacentElement('afterend', status);
+
+        var pendingCompression = null;
+
+        fileInput.addEventListener('change', function () {
+          var file = fileInput.files[0];
+          if (!file) { status.textContent = ''; pendingCompression = null; return; }
+          status.textContent = 'Mengompres foto...';
+          pendingCompression = compressImageFile(file).then(function (compressed) {
+            status.textContent = compressed.size < file.size
+              ? 'Foto dikompres: ' + Math.round(file.size / 1024) + 'KB → ' + Math.round(compressed.size / 1024) + 'KB.'
+              : 'Foto siap diunggah.';
+            var dt = new DataTransfer();
+            dt.items.add(compressed);
+            fileInput.files = dt.files;
+            pendingCompression = null;
+          });
+        });
+
+        form.addEventListener('submit', function (e) {
+          if (!pendingCompression) return; // tidak ada kompresi berjalan, submit seperti biasa
+          e.preventDefault();
+          pendingCompression.then(function () { form.submit(); });
+        });
       })();
       </script>
     <?php else: ?>

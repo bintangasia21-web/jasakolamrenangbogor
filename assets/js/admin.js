@@ -215,10 +215,12 @@
         var file = e.target.files[0];
         if (!file) return;
         var status = card.querySelector("[data-upload-status]");
-        var fd = new FormData();
-        fd.append("photo", file);
         status.textContent = "Mengunggah...";
-        fetch("upload-photo.php", { method: "POST", body: fd })
+        compressImageFile(file).then(function (compressed) {
+          var fd = new FormData();
+          fd.append("photo", compressed);
+          return fetch("upload-photo.php", { method: "POST", body: fd });
+        })
           .then(function (r) { return r.json(); })
           .then(function (data) {
             if (!data.success) {
@@ -443,10 +445,12 @@
         var file = e.target.files[0];
         if (!file) return;
         var status = card.querySelector("[data-upload-status]");
-        var fd = new FormData();
-        fd.append("photo", file);
         status.textContent = "Mengunggah...";
-        fetch("upload-photo.php", { method: "POST", body: fd })
+        compressImageFile(file).then(function (compressed) {
+          var fd = new FormData();
+          fd.append("photo", compressed);
+          return fetch("upload-photo.php", { method: "POST", body: fd });
+        })
           .then(function (r) { return r.json(); })
           .then(function (data) {
             if (!data.success) {
@@ -875,10 +879,12 @@
       var file = e.target.files[0];
       if (!file) return;
       var status = document.getElementById("pe-cover-status");
-      var fd = new FormData();
-      fd.append("photo", file);
       status.textContent = "Mengunggah...";
-      fetch("upload-photo.php", { method: "POST", body: fd })
+      compressImageFile(file).then(function (compressed) {
+        var fd = new FormData();
+        fd.append("photo", compressed);
+        return fetch("upload-photo.php", { method: "POST", body: fd });
+      })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (!data.success) {
@@ -1121,10 +1127,12 @@
         var file = e.target.files[0];
         if (!file) return;
         var status = card.querySelector("[data-photo-status]");
-        var fd = new FormData();
-        fd.append("photo", file);
         status.textContent = "Mengunggah...";
-        fetch("upload-photo.php", { method: "POST", body: fd })
+        compressImageFile(file).then(function (compressed) {
+          var fd = new FormData();
+          fd.append("photo", compressed);
+          return fetch("upload-photo.php", { method: "POST", body: fd });
+        })
           .then(function (r) { return r.json(); })
           .then(function (data) {
             if (!data.success) {

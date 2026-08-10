@@ -22,6 +22,12 @@ $metaTitle = 'Berapa Biaya Perawatan Kolam Renang di Bogor? Ini yang Menentukan 
 $metaDescription = 'Biaya perawatan kolam renang di Bogor dipengaruhi ukuran kolam, frekuensi kunjungan, dan kondisi sistem filtrasi. Simak faktor-faktor yang menentukan harga sebelum memilih jasa perawatan.';
 $intro = 'Salah satu pertanyaan yang paling sering kami terima dari pemilik kolam di Bogor adalah soal biaya perawatan rutin. Jawaban jujurnya: tidak ada satu angka pasti yang berlaku untuk semua kolam, karena beberapa faktor berikut ikut menentukan.';
 
+// Belum ada foto yang diambil khusus untuk artikel ini -- pakai foto
+// proyek "Perawatan Kolam Rutin" dari galeri Portofolio yang sudah ada
+// (tema paling relevan) sebagai sampul sementara. Admin bisa menggantinya
+// kapan saja lewat tab Artikel di panel admin.
+$coverImage = 'photo.php?id=16';
+
 $content = '<h2>Faktor yang Menentukan Biaya Perawatan Kolam Renang</h2>'
     . '<ul>'
     . '<li><strong>Ukuran dan volume kolam:</strong> Semakin besar kolam, semakin banyak air yang perlu diseimbangkan kimianya dan semakin lama waktu pembersihan fisik. Kolam minimalis rumah tinggal jelas berbeda kebutuhannya dibanding kolam villa atau resort.</li>'
@@ -38,11 +44,11 @@ $content = '<h2>Faktor yang Menentukan Biaya Perawatan Kolam Renang</h2>'
 try {
     $pdo = get_db();
     $stmt = $pdo->prepare(
-        "INSERT INTO pages (type, url_path, title, meta_title, meta_description, h1, intro, content, status)
-         VALUES ('article', :url_path, :title, :meta_title, :meta_description, :h1, :intro, :content, 'published')
+        "INSERT INTO pages (type, url_path, title, meta_title, meta_description, h1, intro, content, cover_image, status)
+         VALUES ('article', :url_path, :title, :meta_title, :meta_description, :h1, :intro, :content, :cover_image, 'published')
          ON DUPLICATE KEY UPDATE title=VALUES(title), meta_title=VALUES(meta_title),
            meta_description=VALUES(meta_description), h1=VALUES(h1), intro=VALUES(intro),
-           content=VALUES(content), status='published'"
+           content=VALUES(content), cover_image=VALUES(cover_image), status='published'"
     );
     $stmt->execute([
         ':url_path' => $urlPath,
@@ -52,6 +58,7 @@ try {
         ':h1' => $title,
         ':intro' => $intro,
         ':content' => $content,
+        ':cover_image' => $coverImage,
     ]);
 
     respond(true, 'Artikel berhasil diterbitkan.', ['url_path' => $urlPath]);
