@@ -23,6 +23,12 @@ $metaTitle = 'Jadwal Ideal Perawatan Kolam Renang Rumah, Berapa Kali Sebulan? | 
 $metaDescription = 'Frekuensi ideal perawatan kolam renang tergantung intensitas pemakaian dan cuaca. Simak panduan jadwal perawatan yang tepat untuk kolam rumah di Bogor.';
 $intro = 'Salah satu kesalahan paling umum pemilik kolam renang adalah menunggu air terlihat kotor baru memanggil jasa perawatan. Padahal, kolam yang dirawat sesuai jadwal justru lebih hemat dalam jangka panjang — mencegah masalah besar sebelum terjadi.';
 
+// Belum ada foto khusus untuk artikel ini -- pakai foto proyek "Kolam
+// Renang Villa Modern di Sentul" dari galeri Portofolio yang sudah ada
+// (artikel ini menyebut vila Sentul/Puncak sebagai contoh pola pemakaian
+// akhir pekan). Admin bisa menggantinya kapan saja lewat tab Artikel.
+$coverImage = 'photo.php?id=11';
+
 $content = '<h2>Frekuensi Ideal Berdasarkan Pola Pemakaian</h2>'
     . '<ul>'
     . '<li><strong>Kolam yang dipakai setiap hari:</strong> idealnya dicek 1 kali seminggu. Pemakaian harian mempercepat perubahan kadar klorin dan pH, terutama kalau sering dipakai anak-anak atau banyak orang sekaligus.</li>'
@@ -38,11 +44,11 @@ $content = '<h2>Frekuensi Ideal Berdasarkan Pola Pemakaian</h2>'
 try {
     $pdo = get_db();
     $stmt = $pdo->prepare(
-        "INSERT INTO pages (type, url_path, title, meta_title, meta_description, h1, intro, content, status)
-         VALUES ('article', :url_path, :title, :meta_title, :meta_description, :h1, :intro, :content, 'published')
+        "INSERT INTO pages (type, url_path, title, meta_title, meta_description, h1, intro, content, cover_image, status)
+         VALUES ('article', :url_path, :title, :meta_title, :meta_description, :h1, :intro, :content, :cover_image, 'published')
          ON DUPLICATE KEY UPDATE title=VALUES(title), meta_title=VALUES(meta_title),
            meta_description=VALUES(meta_description), h1=VALUES(h1), intro=VALUES(intro),
-           content=VALUES(content), status='published'"
+           content=VALUES(content), cover_image=VALUES(cover_image), status='published'"
     );
     $stmt->execute([
         ':url_path' => $urlPath,
@@ -52,6 +58,7 @@ try {
         ':h1' => $title,
         ':intro' => $intro,
         ':content' => $content,
+        ':cover_image' => $coverImage,
     ]);
 
     respond(true, 'Artikel berhasil diterbitkan.', ['url_path' => $urlPath]);
