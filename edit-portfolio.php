@@ -64,6 +64,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($parsed['desc'] !== null) $desc = $parsed['desc'];
         }
 
+        // Jaring pengaman terakhir: kalau teks placeholder prompt entah
+        // bagaimana lolos sampai ke ChatGPT & kepasang di sini (mis. dari
+        // prompt lama yang sudah disalin sebelum perbaikan ini), tolak
+        // dengan pesan jelas alih-alih menyimpan teks yang rusak.
+        $leakedPlaceholders = ['(area belum dipilih)', '(judul proyek belum diisi)'];
+        foreach ($leakedPlaceholders as $placeholder) {
+            if (stripos($title, $placeholder) !== false || stripos($desc, $placeholder) !== false) {
+                redirect_with($backParams + ['error' => 'Judul/Deskripsi mengandung teks placeholder ("' . $placeholder . '") dari prompt yang belum lengkap. Isi ulang Judul & Area, buat prompt baru, lalu coba lagi.']);
+            }
+        }
+
         if ($title === '') {
             redirect_with($backParams + ['error' => 'Judul wajib diisi.']);
         }
@@ -279,8 +290,16 @@ $showForm = $editId || $isNew;
         if (!titleInput || !areaSelect || !promptBox) return;
 
         function updatePrompt() {
-          var title = titleInput.value.trim() || '(judul proyek belum diisi)';
-          var area = areaSelect.value || '(area belum dipilih)';
+          var title = titleInput.value.trim();
+          var area = areaSelect.value;
+          // Kalau Judul/Area belum diisi, JANGAN buat prompt sama sekali
+          // -- sebelumnya teks placeholder ("area belum dipilih") ikut
+          // ke ChatGPT dan muncul apa adanya di hasilnya kalau admin
+          // menyalin prompt sebelum mengisi field ini.
+          if (!title || !area) {
+            promptBox.value = 'Isi dulu "Judul" dan "Area / Lokasi" di atas -- prompt akan muncul di sini otomatis begitu keduanya terisi.';
+            return;
+          }
           promptBox.value =
             'Buatkan konten SEO & GEO (local SEO) untuk halaman portofolio proyek jasa kolam renang berikut:\n' +
             '- Judul proyek (draft): ' + title + '\n' +
