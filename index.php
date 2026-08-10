@@ -526,5 +526,6 @@ echo '<script type="application/ld+json">' . json_encode($faqLd, JSON_UNESCAPED_
 <script>window.AREA_MAP_DATA = <?= json_encode($areas, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;</script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="assets/js/main.js"></script>
+<script src="assets/js/reveal.js"></script>
 </body>
 </html>

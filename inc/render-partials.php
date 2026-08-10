@@ -281,6 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 </script>
+<script src="/assets/js/reveal.js"></script>
 </body>
 </html>
     <?php

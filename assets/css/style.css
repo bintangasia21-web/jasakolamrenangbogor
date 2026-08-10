@@ -424,3 +424,16 @@ a.portfolio-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-m
   background: var(--blue-50); border: 1px dashed var(--blue-400); border-radius: var(--radius-md);
 }
 .empty-state p { color: var(--gray-600); margin: 8px 0 0; }
+
+/* Scroll-reveal (assets/js/reveal.js) -- class "reveal" cuma pernah
+   ditambahkan lewat JS itu sendiri, jadi kalau JS gagal muat/browser
+   tidak dukung, elemen tidak pernah tersembunyi (default tetap
+   terlihat normal). */
+html.js-reveal-ready .reveal {
+  opacity: 0; transform: translateY(24px);
+  transition: opacity .6s cubic-bezier(.4,0,.2,1), transform .6s cubic-bezier(.4,0,.2,1);
+}
+html.js-reveal-ready .reveal.is-visible { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  html.js-reveal-ready .reveal { opacity: 1; transform: none; transition: none; }
+}
