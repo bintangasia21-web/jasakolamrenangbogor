@@ -199,9 +199,9 @@ $showForm = $editId || $isNew;
       Panel Admin
     </div>
     <nav class="admin-nav">
-      <a href="admin.php" style="display:block;padding:11px 12px;border-radius:8px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.92rem;font-weight:600;margin-bottom:4px">&larr; Dashboard</a>
-      <a href="edit-portfolio.php" style="display:block;padding:11px 12px;border-radius:8px;background:var(--blue-600);color:#fff;text-decoration:none;font-size:.92rem;font-weight:600;margin-bottom:4px">Portfolio</a>
-      <a href="admin.html" style="display:block;padding:11px 12px;border-radius:8px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.92rem;font-weight:600;margin-bottom:4px">Fitur Lainnya (panel lama)</a>
+      <a href="admin.php">&larr; Dashboard</a>
+      <a href="edit-portfolio.php" class="active">Portfolio</a>
+      <a href="admin.html">Fitur Lainnya (panel lama)</a>
     </nav>
   </aside>
 
