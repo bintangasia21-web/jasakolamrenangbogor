@@ -113,6 +113,7 @@ function render_header_nav($business) {
       <a href="/layanan/">Layanan</a>
       <a href="/area-layanan/">Area Layanan</a>
       <a href="/portofolio/">Portofolio</a>
+      <a href="/artikel/">Artikel</a>
       <a href="/faq/">FAQ</a>
       <a href="/kontak/">Kontak</a>
     </nav>
