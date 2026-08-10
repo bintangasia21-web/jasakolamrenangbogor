@@ -46,7 +46,16 @@ try {
     $s = [];
 }
 try {
-    $articles = $pdo->query("SELECT * FROM pages WHERE type = 'article' AND status = 'published' ORDER BY sort_order, id LIMIT 3")->fetchAll();
+    // Phase 2 homepage SEO fix (2026-08-10): tabel "pages" tidak punya
+    // kolom created_at/published_at (dicek di schema.sql) -- hanya
+    // updated_at (auto-terisi saat baris dibuat, auto-terperbarui saat
+    // diedit). Diurutkan updated_at DESC supaya artikel yang paling baru
+    // diterbitkan/diperbarui tampil duluan di beranda, bukan sekadar
+    // id terkecil seperti sebelumnya. sort_order tetap jadi kunci utama
+    // (dipertahankan) supaya kurasi manual admin lewat sort_order kalau
+    // pernah diisi tetap dihormati; article draft otomatis tidak lolos
+    // karena filter status='published' sudah ada sebelumnya.
+    $articles = $pdo->query("SELECT * FROM pages WHERE type = 'article' AND status = 'published' ORDER BY sort_order, updated_at DESC LIMIT 3")->fetchAll();
 } catch (Exception $e) {
     $articles = [];
 }
@@ -63,6 +72,46 @@ $areas = array_map(function ($r) {
 }, $areasRaw);
 
 $waHref = 'https://wa.me/' . $business['whatsapp'];
+
+// Dimensi asli foto portofolio/artikel yang dipakai di beranda (Phase 2
+// homepage SEO fix, 2026-08-10) -- dicek langsung dari byte gambar
+// sebenarnya (getimagesize), BUKAN ditebak, supaya <img width/height>
+// mencegah Cumulative Layout Shift tanpa merusak ukuran tampilan (CSS
+// .portfolio-thumb img tetap width:100%;height:100%;object-fit:cover,
+// atribut ini cuma jadi petunjuk rasio aspek awal untuk browser).
+// Kalau admin mengganti foto suatu proyek/artikel di kemudian hari,
+// nilai di sini perlu diperbarui ulang (lihat laporan Phase 2, bagian
+// Potential Risks).
+$knownPhotoDimensions = [
+    'photo.php?id=11' => [649, 472],
+    'photo.php?id=13' => [390, 256],
+    'photo.php?id=14' => [427, 299],
+    'photo.php?id=15' => [427, 299],
+    'photo.php?id=16' => [738, 414],
+    'photo.php?id=17' => [427, 299],
+];
+function photo_dim_attrs($imageUrl, $knownDimensions) {
+    $key = ltrim((string) $imageUrl, '/');
+    if (!isset($knownDimensions[$key])) {
+        return ''; // dimensi tidak diketahui -- jangan mengarang, tidak tambahkan atribut
+    }
+    [$w, $h] = $knownDimensions[$key];
+    return ' width="' . (int) $w . '" height="' . (int) $h . '"';
+}
+
+// SEO title/description KHUSUS beranda (Phase 2 homepage SEO fix,
+// 2026-08-10) -- sengaja TIDAK memakai $business['description']
+// (field itu dipakai bersama di footer semua halaman via
+// render_footer(), jadi tidak boleh diubah tanpa memengaruhi halaman
+// lain). Angka "10+ tahun" & "350+ proyek" sudah dikonfirmasi valid
+// oleh pemilik bisnis, dipakai apa adanya (bukan angka baru).
+$homeMetaTitle = 'Jasa Kolam Renang Bogor | Pembuatan, Perawatan & Renovasi';
+$homeMetaDescription = 'Jasa kolam renang Bogor: pembuatan, perawatan, dan renovasi untuk rumah, villa, dan resort. 10+ tahun pengalaman, 350+ proyek selesai. Konsultasi gratis.';
+// Foto hero (id=2) dipakai sebagai og:image/twitter:image -- foto asli
+// yang sudah live publik, bukan aset baru yang dibuat otomatis. Bukan
+// rasio ideal 1200x630, tapi jauh lebih baik daripada SVG sebelumnya
+// yang tidak dirender sebagai preview oleh mayoritas platform share.
+$homeSocialImage = rtrim($business['domain'], '/') . '/photo.php?id=2';
 
 // Daftar masalah kolam renang yang paling sering dikeluhkan pelanggan,
 // tiap item ditautkan ke halaman layanan terkait yang sudah live (dicek
@@ -94,16 +143,19 @@ $jenisPelangganList = [
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jasa Kolam Renang Bogor | Pembuatan, Perawatan &amp; Renovasi Kolam Renang</title>
-<meta name="description" content="<?= h($business['description']) ?>">
+<title><?= h($homeMetaTitle) ?></title>
+<meta name="description" content="<?= h($homeMetaDescription) ?>">
 <link rel="canonical" href="<?= h(rtrim($business['domain'], '/')) ?>/">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Jasa Kolam Renang Bogor | Pembuatan, Perawatan &amp; Renovasi Kolam Renang">
-<meta property="og:description" content="<?= h($business['description']) ?>">
+<meta property="og:title" content="<?= h($homeMetaTitle) ?>">
+<meta property="og:description" content="<?= h($homeMetaDescription) ?>">
 <meta property="og:url" content="<?= h(rtrim($business['domain'], '/')) ?>/">
-<meta property="og:image" content="<?= h(rtrim($business['domain'], '/')) ?>/assets/img/og-image.svg">
+<meta property="og:image" content="<?= h($homeSocialImage) ?>">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<?= h($homeMetaTitle) ?>">
+<meta name="twitter:description" content="<?= h($homeMetaDescription) ?>">
+<meta name="twitter:image" content="<?= h($homeSocialImage) ?>">
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -141,7 +193,7 @@ $jenisPelangganList = [
     </div>
     <div class="hero-visual">
       <?php if (!empty($s['hero_image'])): ?>
-      <img src="/<?= h(ltrim($s['hero_image'], '/')) ?>" alt="<?= h($business['name']) ?>">
+      <img src="/<?= h(ltrim($s['hero_image'], '/')) ?>" alt="<?= h($business['name']) ?>" width="649" height="481">
       <?php else: ?>
       <svg viewBox="0 0 420 320" xmlns="http://www.w3.org/2000/svg">
         <rect x="20" y="30" width="380" height="220" rx="18" fill="#ffffff" fill-opacity="0.12"/>
@@ -192,28 +244,28 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
           <div class="why-item">
             <div class="why-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></div>
             <div>
-              <h4>Berpengalaman & Terpercaya</h4>
-              <p>Puluhan tahun pengalaman menangani kolam renang berbagai skala di wilayah Bogor.</p>
+              <h3>Berpengalaman & Terpercaya</h3>
+              <p>Lebih dari 10 tahun pengalaman menangani kolam renang berbagai skala di wilayah Bogor.</p>
             </div>
           </div>
           <div class="why-item">
             <div class="why-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/></svg></div>
             <div>
-              <h4>Garansi Pekerjaan</h4>
+              <h3>Garansi Pekerjaan</h3>
               <p>Setiap pengerjaan renovasi dan pembuatan kolam disertai garansi tertulis.</p>
             </div>
           </div>
           <div class="why-item">
             <div class="why-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
             <div>
-              <h4>Harga Transparan</h4>
+              <h3>Harga Transparan</h3>
               <p>Penawaran rinci disampaikan di awal tanpa biaya tersembunyi.</p>
             </div>
           </div>
           <div class="why-item">
             <div class="why-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 11-14h-8l1-6Z"/></svg></div>
             <div>
-              <h4>Respon Cepat</h4>
+              <h3>Respon Cepat</h3>
               <p>Tim siap merespons konsultasi dan jadwal survei dengan cepat via WhatsApp.</p>
             </div>
           </div>
@@ -265,7 +317,7 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg>
         </div>
         <h3><a href="<?= h($svc['url_path']) ?>" style="color:inherit"><?= h($svc['title']) ?></a></h3>
-        <p><?= h($svc['intro']) ?> <a href="<?= h($svc['url_path']) ?>" style="color:var(--blue-600);font-weight:600">Selengkapnya &rarr;</a></p>
+        <p><?= h($svc['intro']) ?> <a href="<?= h($svc['url_path']) ?>" style="color:var(--blue-600);font-weight:600">Lihat Layanan Ini &rarr;</a></p>
       </div>
       <?php endforeach; ?>
     </div>
@@ -323,13 +375,23 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
       <h2><?= h(page_text($s, 'proyek_h2', 'Contoh Pekerjaan Kami')) ?></h2>
       <p><?= h(page_text($s, 'proyek_lead', 'Gambaran jenis proyek yang telah kami kerjakan di berbagai area Bogor.')) ?></p>
     </div>
+    <?php
+      // Sembunyikan item dengan judul placeholder yang belum diisi ulang
+      // admin (mis. "... di (area belum dipilih)") KHUSUS di beranda --
+      // record portofolio TIDAK dihapus/diubah di database, tetap utuh
+      // dan tetap tampil apa adanya di /portofolio/ (di luar scope
+      // Phase 2 ini). Lihat laporan Phase 2, FIX 9.
+      $homepagePortfolio = array_filter($portfolio, function ($item) {
+          return strpos((string) $item['title'], '(area belum dipilih)') === false;
+      });
+    ?>
     <div class="portfolio-grid" id="portfolio-grid">
-      <?php foreach ($portfolio as $item): ?>
+      <?php foreach ($homepagePortfolio as $item): ?>
       <?php
         $detailLink = $item['detail_link'] ?? null;
         $card = '<div class="portfolio-thumb">'
             . (!empty($item['image'])
-                ? '<img src="' . h($item['image']) . '" alt="' . h($item['title']) . '" loading="lazy">'
+                ? '<img src="' . h($item['image']) . '" alt="' . h($item['title']) . '" loading="lazy"' . photo_dim_attrs($item['image'], $knownPhotoDimensions) . '>'
                 : placeholder_svg($item['title'], $item['color1'] ?: '#1478c8', $item['color2'] ?: '#00b8d9'))
             . '</div><div class="portfolio-body"><span class="tag">' . h($item['area']) . '</span>'
             . '<h3>' . h($item['title']) . '</h3><p>' . h(short_desc($item['description'])) . '</p>'
@@ -345,13 +407,13 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
     </div>
     <?php
       $hasPlaceholderPhoto = false;
-      foreach ($portfolio as $item) {
+      foreach ($homepagePortfolio as $item) {
           if (empty($item['image'])) { $hasPlaceholderPhoto = true; break; }
       }
     ?>
     <?php if ($hasPlaceholderPhoto): ?>
     <p class="portfolio-note">Sebagian gambar di atas adalah ilustrasi placeholder. Foto proyek asli dapat ditambahkan melalui panel admin.</p>
-    <?php elseif (!empty($portfolio)): ?>
+    <?php elseif (!empty($homepagePortfolio)): ?>
     <p class="portfolio-note">Klik salah satu kartu untuk melihat detail proyek.</p>
     <?php endif; ?>
   </div>
@@ -369,7 +431,7 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
       <div class="why-item">
         <div class="why-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></div>
         <div>
-          <h4><?= h($jp['title']) ?></h4>
+          <h3><?= h($jp['title']) ?></h3>
           <p><?= h($jp['desc']) ?></p>
         </div>
       </div>
@@ -391,7 +453,7 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
       <a class="portfolio-card" href="<?= h($item['url_path']) ?>" style="display:block;color:inherit">
         <div class="portfolio-thumb">
           <?php if (!empty($item['cover_image'])): ?>
-          <img src="/<?= h(ltrim($item['cover_image'], '/')) ?>" alt="<?= h($item['title']) ?>" loading="lazy">
+          <img src="/<?= h(ltrim($item['cover_image'], '/')) ?>" alt="<?= h($item['title']) ?>" loading="lazy"<?= photo_dim_attrs(ltrim($item['cover_image'], '/'), $knownPhotoDimensions) ?>>
           <?php else: ?>
           <?= placeholder_svg($item['title'], '#1478c8', '#00b8d9') ?>
           <?php endif; ?>
