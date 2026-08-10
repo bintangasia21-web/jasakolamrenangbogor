@@ -35,10 +35,10 @@ $areas = array_map(function ($r) {
 }, $areasRaw);
 
 $meta = [
-    'title' => 'Panduan Kolam Renang',
-    'meta_title' => 'Panduan & Artikel Kolam Renang | Jasa Kolam Renang Bogor',
-    'meta_description' => 'Kumpulan artikel panduan seputar perawatan, renovasi, dan perbaikan kolam renang dari tim Jasa Kolam Renang Bogor.',
-    'intro' => 'Tips dan panduan praktis seputar perawatan, renovasi, dan perbaikan kolam renang.',
+    'title' => 'Artikel & Panduan Kolam Renang',
+    'meta_title' => 'Artikel Kolam Renang | Jasa Kolam Renang Bogor',
+    'meta_description' => 'Kumpulan panduan seputar perawatan, biaya, dan perbaikan kolam renang di Bogor — ditulis oleh tim berpengalaman.',
+    'intro' => 'Tips praktis seputar perawatan, biaya, dan perbaikan kolam renang di Bogor, ditulis berdasarkan pengalaman lapangan kami.',
     'url_path' => '/artikel/'
 ];
 
@@ -46,7 +46,32 @@ render_head($meta, $business);
 render_header_nav($business);
 render_local_business_ld($business, $areas);
 render_breadcrumbs([['Beranda', '/'], ['Artikel', null]], $business);
+
+// CollectionPage + ItemList: daftar artikel yang dipublikasikan supaya
+// mesin pencari memahami halaman ini sebagai indeks/koleksi artikel,
+// bukan satu artikel tunggal (beda @type dengan halaman detail artikel
+// yang pakai "Article", lihat inc/templates/article.php).
+$canonical = rtrim($business['domain'], '/') . $meta['url_path'];
+$collectionLd = [
+    '@context' => 'https://schema.org',
+    '@type' => 'CollectionPage',
+    'name' => $meta['meta_title'],
+    'description' => $meta['meta_description'],
+    'url' => $canonical,
+    'mainEntity' => [
+        '@type' => 'ItemList',
+        'itemListElement' => array_values(array_map(function ($item, $i) use ($business) {
+            return [
+                '@type' => 'ListItem',
+                'position' => $i + 1,
+                'url' => rtrim($business['domain'], '/') . $item['url_path'],
+                'name' => $item['title']
+            ];
+        }, $articles, array_keys($articles)))
+    ]
+];
 ?>
+<script type="application/ld+json"><?= json_encode($collectionLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?></script>
 
 <section class="hero">
   <div class="container">
@@ -73,7 +98,8 @@ render_breadcrumbs([['Beranda', '/'], ['Artikel', null]], $business);
         </div>
         <div class="portfolio-body">
           <h3><?= h($item['title']) ?></h3>
-          <p><?= h($item['intro']) ?></p>
+          <p><?= h(short_desc($item['intro'], 30)) ?></p>
+          <span class="portfolio-link">Baca Selengkapnya <span class="arrow">&rarr;</span></span>
         </div>
       </a>
       <?php endforeach; ?>
@@ -88,5 +114,5 @@ render_breadcrumbs([['Beranda', '/'], ['Artikel', null]], $business);
 </section>
 
 <?php
-render_cta_band('Butuh Bantuan Langsung dari Ahlinya?', 'Konsultasikan kebutuhan kolam renang Anda, gratis tanpa biaya survei awal.', $business);
+render_cta_band('Tidak Menemukan Jawaban yang Anda Cari?', 'Chat langsung dengan tim kami, kami bantu jawab sesuai kondisi kolam Anda.', $business);
 render_footer($business);

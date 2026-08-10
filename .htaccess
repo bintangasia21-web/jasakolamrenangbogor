@@ -8,7 +8,7 @@
 # Proteksi Basic Auth untuk admin.html dan endpoint ganti password.
 # File .htpasswd tidak lagi dikelola lewat Git (lihat catatan di .gitignore)
 # supaya perubahan password lewat panel admin tidak tertimpa saat deploy.
-<FilesMatch "^(admin\.html|admin\.php|edit-portfolio\.php|change-password\.php|upload-photo\.php|save-data\.php|migrate-to-db\.php|setup-schema\.php|get-pages\.php|save-page\.php|import-pages\.php|seed-perawatan-content\.php|fix-content-2026-08-10\.php|delete-page\.php|get-page-sections\.php|save-page-sections\.php)$">
+<FilesMatch "^(admin\.html|admin\.php|edit-portfolio\.php|change-password\.php|upload-photo\.php|save-data\.php|migrate-to-db\.php|setup-schema\.php|get-pages\.php|save-page\.php|import-pages\.php|seed-perawatan-content\.php|fix-content-2026-08-10\.php|seed-artikel-biaya-perawatan\.php|delete-page\.php|get-page-sections\.php|save-page-sections\.php)$">
   AuthType Basic
   AuthName "Admin - Jasa Kolam Renang Bogor"
   AuthUserFile /home/u740832685/domains/jasakolamrenangbogor.com/public_html/.htpasswd
