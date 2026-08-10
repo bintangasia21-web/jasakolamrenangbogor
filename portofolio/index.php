@@ -70,7 +70,7 @@ render_breadcrumbs([['Beranda', '/'], ['Portofolio', null]], $business);
                 ? '<img src="/' . h(ltrim($item['image'], '/')) . '" alt="' . h($item['title']) . '" loading="lazy">'
                 : placeholder_svg($item['title'], $item['color1'] ?: '#1478c8', $item['color2'] ?: '#00b8d9'))
             . '</div><div class="portfolio-body"><span class="tag">' . h($item['area']) . '</span>'
-            . '<h3>' . h($item['title']) . '</h3><p>' . h($item['description']) . '</p>'
+            . '<h3>' . h($item['title']) . '</h3><p>' . h(short_desc($item['description'])) . '</p>'
             . ($targetLink ? '<span class="portfolio-link">' . h($linkLabel) . ' <span class="arrow">&rarr;</span></span>' : '')
             . '</div>';
       ?>

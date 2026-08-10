@@ -65,7 +65,7 @@ render_breadcrumbs([['Beranda', '/'], ['Portofolio', '/portofolio/'], [$page['ti
         <div class="portfolio-body">
           <span class="tag"><?= h($item['area']) ?></span>
           <h3><?= h($item['title']) ?></h3>
-          <p><?= h($item['description']) ?></p>
+          <p><?= h(short_desc($item['description'])) ?></p>
           <span class="portfolio-link">Lihat Detail <span class="arrow">&rarr;</span></span>
         </div>
       </a>

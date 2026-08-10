@@ -48,6 +48,18 @@ function placeholder_initials($title) {
     return $initials ?: 'KR';
 }
 
+function short_desc($text, $wordLimit = 15) {
+    $text = trim(preg_replace('/\s+/', ' ', (string) $text));
+    if ($text === '') {
+        return '';
+    }
+    $words = preg_split('/\s+/', $text);
+    if (count($words) <= $wordLimit) {
+        return $text;
+    }
+    return implode(' ', array_slice($words, 0, $wordLimit)) . '…';
+}
+
 function placeholder_svg($title, $color1, $color2) {
     return '<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' . h($title) . '">'
         . '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
