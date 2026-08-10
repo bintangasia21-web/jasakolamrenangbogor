@@ -9,6 +9,15 @@ function h($s) {
     return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
 }
 
+function page_text($sections, $key, $default) {
+    // Field CMS "Halaman Utama" bisa tersimpan sebagai string kosong
+    // (bukan cuma "belum ada key sama sekali") kalau admin pernah
+    // menyimpan form dengan field itu masih kosong -- pola `?? 'default'`
+    // biasa tidak menangkap kasus ini, jadi harus dicek eksplisit.
+    $v = trim((string) ($sections[$key] ?? ''));
+    return $v !== '' ? $sections[$key] : $default;
+}
+
 function get_page_sections($pageKey) {
     // Teks/copy halaman yang bisa diedit lewat tab admin "Halaman Utama"
     // tanpa deploy. Dibungkus try/catch: kalau tabel page_sections belum
@@ -113,12 +122,11 @@ function render_breadcrumbs($items, $business) {
     $ldItems = [];
     $i = 1;
     foreach ($items as $item) {
-        $ldItems[] = [
-            '@type' => 'ListItem',
-            'position' => $i++,
-            'name' => $item[0],
-            'item' => $item[1] ? rtrim($business['domain'], '/') . $item[1] : null
-        ];
+        $ld = ['@type' => 'ListItem', 'position' => $i++, 'name' => $item[0]];
+        if ($item[1]) {
+            $ld['item'] = rtrim($business['domain'], '/') . $item[1];
+        }
+        $ldItems[] = $ld;
     }
     ?>
 <div class="breadcrumb">

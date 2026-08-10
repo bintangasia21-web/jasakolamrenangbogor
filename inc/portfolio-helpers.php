@@ -50,10 +50,15 @@ function portfolio_sync_seo_page($pdo, $portfolioId, $title, $area, $desc, $imag
     // mengabaikan baris baru mentah), dan pakai paragraf PERTAMA saja
     // sebagai lead/intro singkat di bagian hero halaman detail.
     $paragraphs = preg_split('/\n\s*\n/', trim($desc));
+    $intro = trim($paragraphs[0] ?? $desc);
+
+    // Paragraf pertama sudah ditampilkan sebagai intro/lead di hero, jadi
+    // body tidak perlu mengulanginya lagi -- kecuali kalau memang cuma
+    // ada satu paragraf saja (supaya section body tidak kosong total).
+    $bodyParagraphs = count($paragraphs) > 1 ? array_slice($paragraphs, 1) : $paragraphs;
     $contentHtml = implode('', array_map(function ($p) {
         return '<p>' . nl2br(htmlspecialchars(trim($p), ENT_QUOTES, 'UTF-8')) . '</p>';
-    }, array_filter($paragraphs, function ($p) { return trim($p) !== ''; })));
-    $intro = trim($paragraphs[0] ?? $desc);
+    }, array_filter($bodyParagraphs, function ($p) { return trim($p) !== ''; })));
 
     $stmt = $pdo->prepare(
         "INSERT INTO pages (type, url_path, title, h1, area_ref, intro, content, cover_image, status)

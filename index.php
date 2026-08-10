@@ -122,10 +122,10 @@ $jenisPelangganList = [
     <div>
       <span class="hero-badge">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
-        <?= h($s['hero_badge'] ?? 'Terpercaya di Bogor & Sekitarnya') ?>
+        <?= h(page_text($s, 'hero_badge', 'Terpercaya di Bogor & Sekitarnya')) ?>
       </span>
-      <h1><?= h($s['hero_h1'] ?? 'Jasa Kolam Renang Bogor untuk Pembangunan, Renovasi & Perawatan') ?></h1>
-      <p class="lead"><?= h($s['hero_lead'] ?? 'Kami melayani pembuatan kolam renang baru, perawatan rutin, renovasi & perbaikan, hingga instalasi sistem air — untuk rumah tinggal, villa, dan resort di Sentul, Puncak, Ciawi, Bogor Kota, Cibinong, Yasmin, dan area Bogor lainnya.') ?></p>
+      <h1><?= h(page_text($s, 'hero_h1', 'Jasa Kolam Renang Bogor untuk Pembangunan, Renovasi & Perawatan')) ?></h1>
+      <p class="lead"><?= h(page_text($s, 'hero_lead', 'Kami melayani pembuatan kolam renang baru, perawatan rutin, renovasi & perbaikan, hingga instalasi sistem air — untuk rumah tinggal, villa, dan resort di Sentul, Puncak, Ciawi, Bogor Kota, Cibinong, Yasmin, dan area Bogor lainnya.')) ?></p>
       <div class="hero-actions">
         <a href="<?= h($waHref) ?>" class="btn btn-white">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 20Zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1s-.6.8-.7.9-.3.1-.5 0a6.6 6.6 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.4l.4-.4.2-.4v-.3c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.4a.9.9 0 0 0-.6.3 2.7 2.7 0 0 0-.8 2 4.7 4.7 0 0 0 1 2.5 10.8 10.8 0 0 0 4.1 3.6c.6.2 1 .4 1.4.5a3.3 3.3 0 0 0 1.5.1 2.5 2.5 0 0 0 1.6-1.1 1.9 1.9 0 0 0 .1-1.1c-.1-.1-.2-.2-.4-.3Z"/></svg>
@@ -181,9 +181,9 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
 <section id="tentang">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow"><?= h($s['tentang_eyebrow'] ?? 'Tentang Kami') ?></span>
-      <h2><?= h($s['tentang_h2'] ?? 'Tentang Jasa Kolam Renang Bogor') ?></h2>
-      <p><?= h($s['tentang_lead'] ?? 'Dipercaya pemilik rumah, villa, dan resort di Bogor untuk pembangunan, renovasi, dan perawatan kolam renang.') ?></p>
+      <span class="eyebrow"><?= h(page_text($s, 'tentang_eyebrow', 'Tentang Kami')) ?></span>
+      <h2><?= h(page_text($s, 'tentang_h2', 'Tentang Jasa Kolam Renang Bogor')) ?></h2>
+      <p><?= h(page_text($s, 'tentang_lead', 'Dipercaya pemilik rumah, villa, dan resort di Bogor untuk pembangunan, renovasi, dan perawatan kolam renang.')) ?></p>
     </div>
     <div class="two-col">
       <div>
@@ -242,9 +242,9 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
 <section id="layanan" class="section-alt">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow"><?= h($s['layanan_eyebrow'] ?? 'Layanan Kami') ?></span>
-      <h2><?= h($s['layanan_h2'] ?? 'Solusi Lengkap Kolam Renang Anda') ?></h2>
-      <p><?= h($s['layanan_lead'] ?? 'Dari kolam baru hingga perawatan berkelanjutan, tim kami menangani setiap tahap dengan standar kerja rapi dan bahan berkualitas.') ?></p>
+      <span class="eyebrow"><?= h(page_text($s, 'layanan_eyebrow', 'Layanan Kami')) ?></span>
+      <h2><?= h(page_text($s, 'layanan_h2', 'Solusi Lengkap Kolam Renang Anda')) ?></h2>
+      <p><?= h(page_text($s, 'layanan_lead', 'Dari kolam baru hingga perawatan berkelanjutan, tim kami menangani setiap tahap dengan standar kerja rapi dan bahan berkualitas.')) ?></p>
     </div>
     <div class="services-grid">
       <?php
@@ -278,9 +278,9 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
 <section id="area">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow"><?= h($s['area_eyebrow'] ?? 'Area Layanan') ?></span>
-      <h2><?= h($s['area_h2'] ?? 'Melayani Kota Bogor & Kabupaten Bogor serta Sekitarnya') ?></h2>
-      <p><?= h($s['area_lead'] ?? 'Klik area di bawah untuk melihat layanan yang disesuaikan dengan karakteristik masing-masing wilayah yang benar-benar kami layani. Zona berwarna hijau pada peta menandai area prioritas layanan kami.') ?></p>
+      <span class="eyebrow"><?= h(page_text($s, 'area_eyebrow', 'Area Layanan')) ?></span>
+      <h2><?= h(page_text($s, 'area_h2', 'Melayani Kota Bogor & Kabupaten Bogor serta Sekitarnya')) ?></h2>
+      <p><?= h(page_text($s, 'area_lead', 'Klik area di bawah untuk melihat layanan yang disesuaikan dengan karakteristik masing-masing wilayah yang benar-benar kami layani. Zona berwarna hijau pada peta menandai area prioritas layanan kami.')) ?></p>
     </div>
     <div class="area-map-wrap"><div id="area-map"></div></div>
     <div class="area-grid" id="area-grid">
@@ -298,9 +298,9 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
 <section id="masalah" class="section-alt">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow"><?= h($s['masalah_eyebrow'] ?? 'Masalah Kolam Renang') ?></span>
-      <h2><?= h($s['masalah_h2'] ?? 'Masalah yang Paling Sering Kami Tangani') ?></h2>
-      <p><?= h($s['masalah_lead'] ?? 'Kenali masalah kolam Anda dan langsung lihat layanan yang paling sesuai untuk menanganinya.') ?></p>
+      <span class="eyebrow"><?= h(page_text($s, 'masalah_eyebrow', 'Masalah Kolam Renang')) ?></span>
+      <h2><?= h(page_text($s, 'masalah_h2', 'Masalah yang Paling Sering Kami Tangani')) ?></h2>
+      <p><?= h(page_text($s, 'masalah_lead', 'Kenali masalah kolam Anda dan langsung lihat layanan yang paling sesuai untuk menanganinya.')) ?></p>
     </div>
     <div class="services-grid">
       <?php foreach ($masalahList as $m): ?>
@@ -319,9 +319,9 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
 <section id="proyek">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow"><?= h($s['proyek_eyebrow'] ?? 'Proyek Nyata') ?></span>
-      <h2><?= h($s['proyek_h2'] ?? 'Contoh Pekerjaan Kami') ?></h2>
-      <p><?= h($s['proyek_lead'] ?? 'Gambaran jenis proyek yang telah kami kerjakan di berbagai area Bogor.') ?></p>
+      <span class="eyebrow"><?= h(page_text($s, 'proyek_eyebrow', 'Proyek Nyata')) ?></span>
+      <h2><?= h(page_text($s, 'proyek_h2', 'Contoh Pekerjaan Kami')) ?></h2>
+      <p><?= h(page_text($s, 'proyek_lead', 'Gambaran jenis proyek yang telah kami kerjakan di berbagai area Bogor.')) ?></p>
     </div>
     <div class="portfolio-grid" id="portfolio-grid">
       <?php foreach ($portfolio as $item): ?>
@@ -341,16 +341,26 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
       <?php endif; ?>
       <?php endforeach; ?>
     </div>
-    <p class="portfolio-note">Gambar di atas adalah ilustrasi placeholder. Foto proyek asli dapat ditambahkan melalui panel admin.</p>
+    <?php
+      $hasPlaceholderPhoto = false;
+      foreach ($portfolio as $item) {
+          if (empty($item['image'])) { $hasPlaceholderPhoto = true; break; }
+      }
+    ?>
+    <?php if ($hasPlaceholderPhoto): ?>
+    <p class="portfolio-note">Sebagian gambar di atas adalah ilustrasi placeholder. Foto proyek asli dapat ditambahkan melalui panel admin.</p>
+    <?php elseif (!empty($portfolio)): ?>
+    <p class="portfolio-note">Klik salah satu kartu untuk melihat detail proyek.</p>
+    <?php endif; ?>
   </div>
 </section>
 
 <section id="jenis-pelanggan" class="section-alt">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow"><?= h($s['jenis_pelanggan_eyebrow'] ?? 'Jenis Pelanggan') ?></span>
-      <h2><?= h($s['jenis_pelanggan_h2'] ?? 'Melayani Berbagai Jenis Properti') ?></h2>
-      <p><?= h($s['jenis_pelanggan_lead'] ?? 'Dari rumah tinggal hingga fasilitas komersial, kami menyesuaikan layanan dengan kebutuhan tiap jenis properti.') ?></p>
+      <span class="eyebrow"><?= h(page_text($s, 'jenis_pelanggan_eyebrow', 'Jenis Pelanggan')) ?></span>
+      <h2><?= h(page_text($s, 'jenis_pelanggan_h2', 'Melayani Berbagai Jenis Properti')) ?></h2>
+      <p><?= h(page_text($s, 'jenis_pelanggan_lead', 'Dari rumah tinggal hingga fasilitas komersial, kami menyesuaikan layanan dengan kebutuhan tiap jenis properti.')) ?></p>
     </div>
     <div class="why-grid">
       <?php foreach ($jenisPelangganList as $jp): ?>
@@ -369,9 +379,9 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
 <section id="panduan">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow"><?= h($s['panduan_eyebrow'] ?? 'Panduan Kolam Renang') ?></span>
-      <h2><?= h($s['panduan_h2'] ?? 'Tips & Panduan Perawatan Kolam Renang') ?></h2>
-      <p><?= h($s['panduan_lead'] ?? 'Artikel panduan seputar perawatan, renovasi, dan perbaikan kolam renang.') ?></p>
+      <span class="eyebrow"><?= h(page_text($s, 'panduan_eyebrow', 'Panduan Kolam Renang')) ?></span>
+      <h2><?= h(page_text($s, 'panduan_h2', 'Tips & Panduan Perawatan Kolam Renang')) ?></h2>
+      <p><?= h(page_text($s, 'panduan_lead', 'Artikel panduan seputar perawatan, renovasi, dan perbaikan kolam renang.')) ?></p>
     </div>
     <?php if (!empty($articles)): ?>
     <div class="portfolio-grid">
@@ -409,9 +419,9 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
 <section id="faq" class="section-alt">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow"><?= h($s['faq_eyebrow'] ?? 'FAQ') ?></span>
-      <h2><?= h($s['faq_h2'] ?? 'Pertanyaan yang Sering Diajukan') ?></h2>
-      <p><?= h($s['faq_lead'] ?? 'Belum menemukan jawaban? Hubungi kami langsung melalui WhatsApp.') ?></p>
+      <span class="eyebrow"><?= h(page_text($s, 'faq_eyebrow', 'FAQ')) ?></span>
+      <h2><?= h(page_text($s, 'faq_h2', 'Pertanyaan yang Sering Diajukan')) ?></h2>
+      <p><?= h(page_text($s, 'faq_lead', 'Belum menemukan jawaban? Hubungi kami langsung melalui WhatsApp.')) ?></p>
     </div>
     <div class="faq-list" id="faq-list">
       <?php foreach ($faq as $i => $item): ?>
@@ -437,9 +447,9 @@ echo '<script type="application/ld+json">' . json_encode($faqLd, JSON_UNESCAPED_
 <section id="testimonial">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow"><?= h($s['testimonial_eyebrow'] ?? 'Testimonial') ?></span>
-      <h2><?= h($s['testimonial_h2'] ?? 'Kata Pelanggan Kami') ?></h2>
-      <p><?= h($s['testimonial_lead'] ?? 'Pengalaman nyata pelanggan yang sudah menggunakan jasa kami.') ?></p>
+      <span class="eyebrow"><?= h(page_text($s, 'testimonial_eyebrow', 'Testimonial')) ?></span>
+      <h2><?= h(page_text($s, 'testimonial_h2', 'Kata Pelanggan Kami')) ?></h2>
+      <p><?= h(page_text($s, 'testimonial_lead', 'Pengalaman nyata pelanggan yang sudah menggunakan jasa kami.')) ?></p>
     </div>
     <?php if (!empty($testimonials)): ?>
     <div class="testimonial-grid">
@@ -471,7 +481,7 @@ echo '<script type="application/ld+json">' . json_encode($faqLd, JSON_UNESCAPED_
   </div>
 </section>
 
-<?php render_cta_band($s['cta_title'] ?? 'Butuh Jasa Kolam Renang di Bogor?', $s['cta_subtitle'] ?? 'Konsultasikan kebutuhan kolam renang Anda sekarang, gratis tanpa biaya survei awal.', $business); ?>
+<?php render_cta_band(page_text($s, 'cta_title', 'Butuh Jasa Kolam Renang di Bogor?'), page_text($s, 'cta_subtitle', 'Konsultasikan kebutuhan kolam renang Anda sekarang, gratis tanpa biaya survei awal.'), $business); ?>
 
 <section id="kontak">
   <div class="container">
