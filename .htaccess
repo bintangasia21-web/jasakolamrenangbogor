@@ -8,7 +8,7 @@
 # Proteksi Basic Auth untuk admin.html dan endpoint ganti password.
 # File .htpasswd tidak lagi dikelola lewat Git (lihat catatan di .gitignore)
 # supaya perubahan password lewat panel admin tidak tertimpa saat deploy.
-<FilesMatch "^(admin\.html|admin\.php|edit-portfolio\.php|change-password\.php|upload-photo\.php|save-data\.php|migrate-to-db\.php|setup-schema\.php|get-pages\.php|save-page\.php|import-pages\.php|seed-perawatan-content\.php|fix-content-2026-08-10\.php|seed-artikel-biaya-perawatan\.php|seed-artikel-jadwal-perawatan\.php|seed-artikel-musim-hujan\.php|seed-artikel-ph-ideal\.php|seed-artikel-backwash-filter\.php|seed-artikel-pompa-diganti\.php|seed-artikel-vila-jarang-dipakai\.php|seed-artikel-air-hijau\.php|seed-artikel-frekuensi-cek-ph\.php|seed-artikel-kesalahan-umum\.php|fix-homepage-h1-spacing\.php|fix-service-pembuatan-kolam-baru\.php|fix-area-bogor-kota\.php|fix-problem-perbaikan-kebocoran\.php|fix-service-perawatan-rutin\.php|delete-page\.php|get-page-sections\.php|save-page-sections\.php)$">
+<FilesMatch "^(admin\.html|admin\.php|edit-portfolio\.php|change-password\.php|upload-photo\.php|save-data\.php|migrate-to-db\.php|setup-schema\.php|get-pages\.php|save-page\.php|import-pages\.php|seed-perawatan-content\.php|fix-content-2026-08-10\.php|seed-artikel-biaya-perawatan\.php|seed-artikel-jadwal-perawatan\.php|seed-artikel-musim-hujan\.php|seed-artikel-ph-ideal\.php|seed-artikel-backwash-filter\.php|seed-artikel-pompa-diganti\.php|seed-artikel-vila-jarang-dipakai\.php|seed-artikel-air-hijau\.php|seed-artikel-frekuensi-cek-ph\.php|seed-artikel-kesalahan-umum\.php|fix-homepage-h1-spacing\.php|fix-service-pembuatan-kolam-baru\.php|fix-area-bogor-kota\.php|fix-problem-perbaikan-kebocoran\.php|migrate-money-page-perawatan\.php|delete-page\.php|get-page-sections\.php|save-page-sections\.php)$">
   AuthType Basic
   AuthName "Admin - Jasa Kolam Renang Bogor"
   AuthUserFile /home/u740832685/domains/jasakolamrenangbogor.com/public_html/.htpasswd
@@ -43,6 +43,10 @@
   Redirect 301 /area-bogor-kota.html /area/bogor-kota/
   Redirect 301 /area-puncak.html /area/puncak/
   Redirect 301 /index.html /
+
+  # Phase 7 (2026-08-11): migrasi money page "Jasa Perawatan Kolam
+  # Renang" ke URL yang lebih menargetkan intent utamanya.
+  Redirect 301 /layanan/perawatan-pembersihan-rutin/ /layanan/jasa-perawatan-kolam-renang/
 </IfModule>
 
 # Routing dinamis untuk 300 halaman SEO/GEO (area, kombinasi, layanan,

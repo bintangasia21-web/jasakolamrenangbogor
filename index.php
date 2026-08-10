@@ -305,7 +305,7 @@ $trustItems[] = ['value' => ($business['city'] ?: 'Bogor'), 'label' => 'Fokus Wi
       // section ini tidak pernah tampak kosong.
       $fallbackServices = [
           ['title' => 'Pembuatan Kolam Baru', 'url_path' => '/layanan/pembuatan-kolam-renang-baru/', 'intro' => 'Desain dan konstruksi kolam renang dari nol sesuai lahan dan kebutuhan Anda, mulai dari kolam minimalis rumah tinggal hingga kolam villa berukuran besar.'],
-          ['title' => 'Perawatan Rutin', 'url_path' => '/layanan/perawatan-pembersihan-rutin/', 'intro' => 'Program perawatan berkala — pembersihan, pengecekan kualitas air, dan perawatan sistem filtrasi — agar kolam selalu jernih dan siap pakai kapan saja.'],
+          ['title' => 'Perawatan Rutin', 'url_path' => '/layanan/jasa-perawatan-kolam-renang/', 'intro' => 'Program perawatan berkala — pembersihan, pengecekan kualitas air, dan perawatan sistem filtrasi — agar kolam selalu jernih dan siap pakai kapan saja.'],
           ['title' => 'Renovasi & Perbaikan', 'url_path' => '/layanan/renovasi-perbaikan-kolam/', 'intro' => 'Perbaikan kebocoran, keramik pecah, waterproofing, hingga renovasi total kolam lama agar tampil dan berfungsi seperti baru kembali.'],
           ['title' => 'Instalasi Sistem Air', 'url_path' => '/layanan/instalasi-filter-pompa/', 'intro' => 'Pemasangan pompa sirkulasi, filter, sistem sanitasi, dan plumbing kolam renang agar air tetap bersih dan perawatan lebih efisien.']
       ];
