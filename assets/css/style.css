@@ -22,14 +22,20 @@
   --gray-800: #2d3748;
   --gray-900: #1a202c;
   --wa-green: #25d366;
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 22px;
-  --shadow-sm: 0 2px 8px rgba(7, 55, 99, 0.08);
-  --shadow-md: 0 8px 24px rgba(7, 55, 99, 0.12);
-  --shadow-lg: 0 16px 40px rgba(7, 55, 99, 0.16);
+  /* Radius & shadow diperbesar/diperhalus dari versi sebelumnya untuk
+     kesan "modern minimalis" -- sudut lebih lembut, bayangan lebih
+     difus (tidak tajam), bukan angka acak. */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 26px;
+  --shadow-sm: 0 4px 16px rgba(7, 55, 99, 0.06);
+  --shadow-md: 0 12px 32px rgba(7, 55, 99, 0.10);
+  --shadow-lg: 0 24px 56px rgba(7, 55, 99, 0.14);
   --container: 1180px;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Inter sebagai font utama (dimuat via Google Fonts di render_head()
+     & tiap halaman mandiri) -- fallback ke system font stack lama
+     kalau Google Fonts gagal dimuat, supaya teks tetap terbaca normal. */
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -39,13 +45,14 @@ body {
   font-family: var(--font);
   color: var(--gray-800);
   background: var(--white);
-  line-height: 1.6;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 ul { margin: 0; padding: 0; list-style: none; }
-h1, h2, h3, h4 { margin: 0 0 .5em; color: var(--blue-900); line-height: 1.25; }
+h1, h2, h3, h4 { margin: 0 0 .5em; color: var(--blue-900); line-height: 1.2; font-weight: 800; letter-spacing: -.02em; }
 p { margin: 0 0 1em; }
 .container {
   width: 100%;
@@ -53,9 +60,9 @@ p { margin: 0 0 1em; }
   margin: 0 auto;
   padding: 0 20px;
 }
-section { padding: 72px 0; }
+section { padding: 88px 0; }
 .section-alt { background: var(--blue-50); }
-.section-head { text-align: center; max-width: 680px; margin: 0 auto 44px; }
+.section-head { text-align: center; max-width: 680px; margin: 0 auto 56px; }
 .eyebrow {
   display: inline-block;
   color: var(--blue-600);
@@ -68,8 +75,8 @@ section { padding: 72px 0; }
   border-radius: 999px;
   margin-bottom: 14px;
 }
-.section-head h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); }
-.section-head p { color: var(--gray-600); }
+.section-head h2 { font-size: clamp(1.75rem, 3.4vw, 2.5rem); }
+.section-head p { color: var(--gray-600); font-size: 1.02rem; }
 
 /* Buttons */
 .btn {
