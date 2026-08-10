@@ -24,11 +24,23 @@ render_breadcrumbs([['Beranda', '/'], ['Portofolio', '/portofolio/'], [$page['ti
 </section>
 <?php endif; ?>
 
+<?php
+  // Sebagian halaman lama tersimpan dengan body yang mengulang persis
+  // teks intro di atas (bug lama di portfolio_sync_seo_page() saat
+  // deskripsi cuma satu paragraf). Bandingkan versi teks-polos supaya
+  // section ini disembunyikan untuk data lama yang masih duplikat,
+  // tanpa perlu migrasi/re-save data di database.
+  $bodyPlain = trim(preg_replace('/\s+/', ' ', strip_tags((string) $page['content'])));
+  $introPlain = trim(preg_replace('/\s+/', ' ', (string) $page['intro']));
+  $showBody = $bodyPlain !== '' && $bodyPlain !== $introPlain;
+?>
+<?php if ($showBody): ?>
 <section>
   <div class="container">
     <?= $page['content'] ?>
   </div>
 </section>
+<?php endif; ?>
 
 <?php
   // Proyek lain untuk internal linking -- exclude proyek yang sedang

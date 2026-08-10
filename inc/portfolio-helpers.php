@@ -53,9 +53,10 @@ function portfolio_sync_seo_page($pdo, $portfolioId, $title, $area, $desc, $imag
     $intro = trim($paragraphs[0] ?? $desc);
 
     // Paragraf pertama sudah ditampilkan sebagai intro/lead di hero, jadi
-    // body tidak perlu mengulanginya lagi -- kecuali kalau memang cuma
-    // ada satu paragraf saja (supaya section body tidak kosong total).
-    $bodyParagraphs = count($paragraphs) > 1 ? array_slice($paragraphs, 1) : $paragraphs;
+    // body tidak perlu mengulanginya lagi. Kalau cuma ada satu paragraf,
+    // body dikosongkan (bukan diisi ulang dengan paragraf yang sama) --
+    // template portfolio.php menyembunyikan section body kalau kosong.
+    $bodyParagraphs = count($paragraphs) > 1 ? array_slice($paragraphs, 1) : [];
     $contentHtml = implode('', array_map(function ($p) {
         return '<p>' . nl2br(htmlspecialchars(trim($p), ENT_QUOTES, 'UTF-8')) . '</p>';
     }, array_filter($bodyParagraphs, function ($p) { return trim($p) !== ''; })));
