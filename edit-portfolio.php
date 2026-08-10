@@ -53,12 +53,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $aiPaste = trim($_POST['ai_paste'] ?? '');
         if ($aiPaste !== '') {
             $parsed = parse_ai_response($aiPaste);
+            if ($parsed['title'] === null && $parsed['desc'] === null) {
+                // Teks yang ditempel tidak mengandung label "JUDUL:"/
+                // "DESKRIPSI:" sama sekali -- kemungkinan salah tempel
+                // (bukan balasan ChatGPT yang sesuai format prompt).
+                // Beri tahu jelas alih-alih diam-diam mengabaikannya.
+                redirect_with($backParams + ['error' => 'Teks di kotak "Tempel balasan ChatGPT" tidak dikenali (harus ada baris "JUDUL:" dan/atau "DESKRIPSI:"). Cek kembali hasil dari ChatGPT, atau kosongkan kotak itu kalau tidak ingin memakainya.']);
+            }
             if ($parsed['title'] !== null) $title = $parsed['title'];
             if ($parsed['desc'] !== null) $desc = $parsed['desc'];
         }
 
         if ($title === '') {
             redirect_with($backParams + ['error' => 'Judul wajib diisi.']);
+        }
+        // Batas aman kolom portfolio.title (VARCHAR 191) -- prompt AI
+        // sudah minta maksimal 60 karakter, tapi ChatGPT tidak selalu
+        // patuh, jadi dipotong paksa di sini supaya tidak pernah gagal
+        // simpan gara-gara judul kepanjangan (pelajaran dari kasus
+        // deskripsi yang ternyata jauh lebih panjang dari target).
+        if (mb_strlen($title, 'UTF-8') > 191) {
+            $title = mb_substr($title, 0, 188, 'UTF-8') . '...';
         }
 
         // Foto: pertahankan yang lama kalau tidak ada file baru diunggah.
